@@ -25,6 +25,17 @@ abstract class AnalyticsService {
   void logTutorialStarted(int levelId);
   void logTutorialCompleted(int levelId);
   void logHintOffered(int levelId);
+  void logHintButtonViewed(int levelId, {required bool isStruggling});
+  void logHintRequested(int levelId);
+  void logHintCompleted(int levelId);
+  void logHintCancelled(int levelId);
+  void logHintFailed(int levelId, String reason);
+  void logLevelCompletedWithHint({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  });
   void logRewardedAdRequested(String placement);
   void logRewardedAdCompleted(String placement);
   void logRewardedAdFailed(String placement, String reason);
@@ -117,6 +128,46 @@ class DebugAnalyticsService implements AnalyticsService {
   @override
   void logHintOffered(int levelId) {
     _log('hint_offered', {'level_id': levelId});
+  }
+
+  @override
+  void logHintButtonViewed(int levelId, {required bool isStruggling}) {
+    _log('hint_button_viewed', {'level_id': levelId, 'is_struggling': isStruggling});
+  }
+
+  @override
+  void logHintRequested(int levelId) {
+    _log('hint_requested', {'level_id': levelId});
+  }
+
+  @override
+  void logHintCompleted(int levelId) {
+    _log('hint_completed', {'level_id': levelId});
+  }
+
+  @override
+  void logHintCancelled(int levelId) {
+    _log('hint_cancelled', {'level_id': levelId});
+  }
+
+  @override
+  void logHintFailed(int levelId, String reason) {
+    _log('hint_failed', {'level_id': levelId, 'reason': reason});
+  }
+
+  @override
+  void logLevelCompletedWithHint({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  }) {
+    _log('level_completed_with_hint', {
+      'level_id': levelId,
+      'moves': moves,
+      'optimal_moves': optimalMoves,
+      'stars': stars,
+    });
   }
 
   @override

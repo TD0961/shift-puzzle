@@ -317,50 +317,35 @@ void main() {
       expect(engine.moveCount, equals(5));
     });
 
-    test('Level 7 is solvable in 8 shifts', () {
+    test('Level 7 is solvable in 5 shifts', () {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(7));
       expect(engine.isSolved, isFalse);
 
-      // Optimal 8-shift sequence coordinating corner arrivals
-      engine.shiftRow(0, ShiftDirection.left);
-      engine.shiftRow(4, ShiftDirection.right);
-      engine.shiftColumn(4, ShiftDirection.down);
-      engine.shiftColumn(4, ShiftDirection.down);
-      engine.shiftColumn(0, ShiftDirection.down);
-      engine.shiftRow(4, ShiftDirection.right);
-      engine.shiftColumn(0, ShiftDirection.down);
-      engine.shiftRow(0, ShiftDirection.left);
+      // Optimal 5-shift sequence: Col 3 up -> Col 3 up -> Col 2 down -> Col 1 down -> Col 1 down
+      engine.shiftColumn(3, ShiftDirection.up);
+      engine.shiftColumn(3, ShiftDirection.up);
+      engine.shiftColumn(2, ShiftDirection.down);
+      engine.shiftColumn(1, ShiftDirection.down);
+      engine.shiftColumn(1, ShiftDirection.down);
 
       expect(engine.isSolved, isTrue);
-      expect(engine.moveCount, equals(8));
+      expect(engine.moveCount, equals(5));
     });
 
-    test('Level 8 is solvable in 10 shifts', () {
+    test('Level 8 is solvable in 6 shifts', () {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(8));
       expect(engine.isSolved, isFalse);
 
-      // Col 2 down 2: Triangle (0, 2) -> (2, 2)
-      engine.shiftColumn(2, ShiftDirection.down);
-      engine.shiftColumn(2, ShiftDirection.down);
-
-      // Row 1 right 2: Circle (1, 0) -> (1, 2)
+      // Optimal 6-shift sequence: Row 0 left -> Row 2 left -> Col 2 up -> Col 1 down -> Row 2 left -> Row 1 right
+      engine.shiftRow(0, ShiftDirection.left);
+      engine.shiftRow(2, ShiftDirection.left);
+      engine.shiftColumn(2, ShiftDirection.up);
+      engine.shiftColumn(1, ShiftDirection.down);
+      engine.shiftRow(2, ShiftDirection.left);
       engine.shiftRow(1, ShiftDirection.right);
-      engine.shiftRow(1, ShiftDirection.right);
-
-      // Row 3 left 2: Rose (3, 4) -> (3, 2)
-      engine.shiftRow(3, ShiftDirection.left);
-      engine.shiftRow(3, ShiftDirection.left);
-
-      // Col 1 up 2: Diamond (4, 1) -> (2, 1)
-      engine.shiftColumn(1, ShiftDirection.up);
-      engine.shiftColumn(1, ShiftDirection.up);
-
-      // Col 3 down 2: Emerald (0, 3) -> (2, 3)
-      engine.shiftColumn(3, ShiftDirection.down);
-      engine.shiftColumn(3, ShiftDirection.down);
 
       expect(engine.isSolved, isTrue);
-      expect(engine.moveCount, equals(10));
+      expect(engine.moveCount, equals(6));
     });
 
     test('all levels have 5x5 boards and matching target piece counts', () {

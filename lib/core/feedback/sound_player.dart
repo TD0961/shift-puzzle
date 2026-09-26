@@ -11,4 +11,8 @@ class SoundPlayer {
   static void playChord(List<double> frequencies, double durationMs, {double gain = 0.06}) {
     _impl.playChord(frequencies, durationMs, gain: gain);
   }
+
+  static void playApplause({int clapCount = 14, double durationMs = 1300.0}) {
+    _impl.playApplause(clapCount: clapCount, durationMs: durationMs);
+  }
 }

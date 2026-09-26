@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'widgets/bouncy_button.dart';
+import 'widgets/rocket_celebration.dart';
 
 class WinDialog extends StatefulWidget {
   final int levelId;
@@ -98,9 +99,10 @@ class _WinDialogState extends State<WinDialog>
           scale: _scaleAnimation.value,
           child: child,
         ),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Container(
+        child: RocketCelebrationOverlay(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
             decoration: BoxDecoration(
               color: const Color(0xFF0F172A),
@@ -305,6 +307,7 @@ class _WinDialogState extends State<WinDialog>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

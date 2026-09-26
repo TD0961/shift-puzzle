@@ -589,4 +589,42 @@ void main() {
     expect(find.text('LEVEL 141'), findsOneWidget);
     expect(find.text('Singularity: Event Horizon'), findsOneWidget);
   });
+
+  testWidgets(
+      'Contextual hint presentation shows "Need a hint?" chip when player restarts repeatedly',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+      'sp_completed_levels': ['1'],
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final progress = PlayerProgress(prefs);
+
+    await tester.pumpWidget(ShiftPuzzleApp(progress: progress));
+    await tester.pump();
+
+    // Normal state: icon button without "Need a hint?" text
+    expect(find.text('Need a hint?'), findsNothing);
+
+    // Repeated restarts triggers struggle condition
+    await tester.tap(find.text('Restart'));
+    await tester.pump();
+    await tester.tap(find.text('Restart'));
+    await tester.pump();
+
+    // Contextual button should now display "Need a hint?"
+    expect(find.text('Need a hint?'), findsOneWidget);
+
+    // Tapping it opens the voluntary hint disclosure dialog
+    await tester.tap(find.text('Need a hint?'));
+    await tester.pump();
+
+    expect(find.text('NEED A HINT?'), findsOneWidget);
+    expect(find.text('WATCH AD'), findsOneWidget);
+  });
 }

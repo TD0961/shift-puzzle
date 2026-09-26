@@ -27,6 +27,20 @@ void main() {
       expect(() => analytics.logTutorialStarted(1), returnsNormally);
       expect(() => analytics.logTutorialCompleted(1), returnsNormally);
       expect(() => analytics.logHintOffered(5), returnsNormally);
+      expect(() => analytics.logHintButtonViewed(5, isStruggling: true), returnsNormally);
+      expect(() => analytics.logHintRequested(5), returnsNormally);
+      expect(() => analytics.logHintCompleted(5), returnsNormally);
+      expect(() => analytics.logHintCancelled(5), returnsNormally);
+      expect(() => analytics.logHintFailed(5, 'ad_error'), returnsNormally);
+      expect(
+        () => analytics.logLevelCompletedWithHint(
+          levelId: 5,
+          moves: 6,
+          optimalMoves: 4,
+          stars: 2,
+        ),
+        returnsNormally,
+      );
       expect(() => analytics.logRewardedAdRequested('hint_level_5'), returnsNormally);
       expect(() => analytics.logRewardedAdCompleted('hint_level_5'), returnsNormally);
       expect(() => analytics.logRewardedAdFailed('hint_level_5', 'not_ready'), returnsNormally);

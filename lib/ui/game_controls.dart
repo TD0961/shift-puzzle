@@ -17,6 +17,7 @@ class GameControls extends StatelessWidget {
   final VoidCallback? onDiscardEcho;
   final VoidCallback? onHint;
   final bool isHintActive;
+  final bool isStruggling;
 
   const GameControls({
     super.key,
@@ -35,6 +36,7 @@ class GameControls extends StatelessWidget {
     this.onDiscardEcho,
     this.onHint,
     this.isHintActive = false,
+    this.isStruggling = false,
   });
 
   @override
@@ -71,19 +73,51 @@ class GameControls extends StatelessWidget {
             ),
             const SizedBox(width: 6),
 
-            // Hint button
-            IconButton(
-              key: const ValueKey('hint_button'),
-              onPressed: (!isReplaying && !isBoardBusy && onHint != null) ? onHint : null,
-              icon: Icon(
-                isHintActive ? Icons.lightbulb_rounded : Icons.lightbulb_outline_rounded,
-                size: 20,
+            // Hint button (contextual presentation: subtle 'Need a hint?' chip when struggling)
+            if (isStruggling && !isHintActive) ...[
+              OutlinedButton.icon(
+                key: const ValueKey('hint_button'),
+                onPressed: (!isReplaying && !isBoardBusy && onHint != null) ? onHint : null,
+                icon: const Icon(
+                  Icons.lightbulb_rounded,
+                  size: 16,
+                  color: Color(0xFFFBBF24),
+                ),
+                label: const Text(
+                  'Need a hint?',
+                  style: TextStyle(
+                    color: Color(0xFFFBBF24),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFF78350F).withValues(alpha: 0.3),
+                  side: BorderSide(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.7),
+                    width: 1.2,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
               ),
-              color: isHintActive ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B),
-              disabledColor: const Color(0xFF334155),
-              tooltip: 'Hint',
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            ),
+            ] else ...[
+              IconButton(
+                key: const ValueKey('hint_button'),
+                onPressed: (!isReplaying && !isBoardBusy && onHint != null) ? onHint : null,
+                icon: Icon(
+                  isHintActive ? Icons.lightbulb_rounded : Icons.lightbulb_outline_rounded,
+                  size: 20,
+                ),
+                color: isHintActive ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B),
+                disabledColor: const Color(0xFF334155),
+                tooltip: 'Hint',
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              ),
+            ],
             const SizedBox(width: 6),
 
             // Restart button

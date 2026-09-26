@@ -50,10 +50,11 @@ class GameFeedback {
     SoundPlayer.playTone(160.0, 60.0, gain: 0.04, type: 'sine');
   }
 
-  /// Uplifting chord sequence upon puzzle completion.
+  /// Uplifting chord sequence and cheering applause upon puzzle completion.
   void playLevelComplete() {
     HapticFeedback.mediumImpact();
     if (!isSoundEnabled) return;
-    SoundPlayer.playChord([523.25, 659.25, 783.99, 1046.50], 350.0, gain: 0.08);
+    SoundPlayer.playChord([523.25, 659.25, 783.99, 1046.50], 400.0, gain: 0.08);
+    SoundPlayer.playApplause(clapCount: 14, durationMs: 1300.0);
   }
 }

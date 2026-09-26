@@ -51,6 +51,17 @@ class _GameScreenState extends State<GameScreen> {
         !_isTutorialDismissed;
   }
 
+  int _currentLevelRestartCount = 0;
+  int _currentLevelUndoCount = 0;
+  bool _usedHintOnCurrentLevel = false;
+
+  bool get _isStruggling {
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    return _currentLevelRestartCount >= 2 ||
+        _currentLevelUndoCount >= 3 ||
+        (_engine.moveCount >= level.optimalMoves + 4);
+  }
+
   void _dismissTutorial() {
     if (!_isTutorialDismissed) {
       setState(() {
@@ -91,6 +102,9 @@ class _GameScreenState extends State<GameScreen> {
   void _loadLevel(int levelId) {
     _currentLevelId = levelId;
     _isTutorialDismissed = false;
+    _currentLevelRestartCount = 0;
+    _currentLevelUndoCount = 0;
+    _usedHintOnCurrentLevel = false;
     final level = LevelDefinitions.getLevel(_currentLevelId);
     _engine = PuzzleEngine(level);
 
@@ -129,6 +143,9 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _isTutorialDismissed = false;
+    _currentLevelRestartCount = 0;
+    _currentLevelUndoCount = 0;
+    _usedHintOnCurrentLevel = false;
     if (levelId > 2 && !(_progress?.isTutorialCompleted ?? false)) {
       _progress?.setTutorialCompleted();
       widget.analytics.logTutorialCompleted(_currentLevelId);
@@ -148,6 +165,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _restartCurrentLevel() {
+    _currentLevelRestartCount++;
     widget.analytics.logLevelRestarted(_currentLevelId);
     setState(() {
       _engine.reset();
@@ -162,6 +180,7 @@ class _GameScreenState extends State<GameScreen> {
         _isWinDialogShowing) {
       return;
     }
+    _currentLevelUndoCount++;
     widget.analytics.logUndoUsed(_currentLevelId, _engine.moveCount);
     setState(() {
       _engine.undo();
@@ -228,6 +247,15 @@ class _GameScreenState extends State<GameScreen> {
         stars: stars,
         isNewBest: isNewBest,
       );
+
+      if (_usedHintOnCurrentLevel) {
+        widget.analytics.logLevelCompletedWithHint(
+          levelId: _currentLevelId,
+          moves: _engine.moveCount,
+          optimalMoves: level.optimalMoves,
+          stars: stars,
+        );
+      }
 
       if (!mounted) return;
       Future.delayed(const Duration(milliseconds: 380), () {
@@ -372,6 +400,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     widget.analytics.logHintOffered(_currentLevelId);
+    widget.analytics.logHintButtonViewed(_currentLevelId, isStruggling: _isStruggling);
 
     showDialog<void>(
       context: context,
@@ -441,7 +470,10 @@ class _GameScreenState extends State<GameScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        widget.analytics.logHintCancelled(_currentLevelId);
+                      },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF94A3B8),
                         side: const BorderSide(color: Color(0xFF334155)),
@@ -458,6 +490,7 @@ class _GameScreenState extends State<GameScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(ctx).pop();
+                        widget.analytics.logHintRequested(_currentLevelId);
                         _executeRewardedAdForHint();
                       },
                       style: ElevatedButton.styleFrom(
@@ -502,6 +535,8 @@ class _GameScreenState extends State<GameScreen> {
         if (!mounted) return;
         if (nextMove != null) {
           widget.analytics.logHintGranted(_currentLevelId);
+          widget.analytics.logHintCompleted(_currentLevelId);
+          _usedHintOnCurrentLevel = true;
           setState(() {
             _game.setHint(nextMove);
           });
@@ -519,6 +554,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
           );
         } else {
+          widget.analytics.logHintFailed(_currentLevelId, 'already_at_solution');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('You are already close to the solution!'),
@@ -613,6 +649,7 @@ class _GameScreenState extends State<GameScreen> {
               onDiscardEcho: _discardEcho,
               onHint: _handleRequestHint,
               isHintActive: _game.activeHint != null,
+              isStruggling: _isStruggling,
             ),
             const SizedBox(height: 12),
           ],
