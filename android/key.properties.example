@@ -1,0 +1,16 @@
+# Google Play Upload Keystore Configuration Template
+# ----------------------------------------------------
+# 1. Copy this file to `android/key.properties` (which is gitignored).
+# 2. Generate a secure upload keystore if not already created:
+#    keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+# 3. Fill in the values below:
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks
+
+# Optional: Production AdMob Application ID (e.g., ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX)
+# If omitted, defaults safely to Google's official sample App ID for testing.
+# admobAppId=ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX
+

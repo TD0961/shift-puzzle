@@ -1,0 +1,23 @@
+name: shift_puzzle
+description: "Shift Puzzle — An elegant toroidal shift puzzle game featuring the signature Memory Echo mechanic."
+publish_to: 'none'
+version: 1.0.0+2
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flame: ^1.38.2
+  flutter:
+    sdk: flutter
+  google_mobile_ads: ^9.1.0
+  shared_preferences: ^2.5.5
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

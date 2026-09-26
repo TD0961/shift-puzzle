@@ -1,0 +1,154 @@
+# Shift Puzzle — Google Play Store Listing & Compliance Guide
+
+This document contains all metadata, store copy, compliance declarations, and asset specifications required to publish **Shift Puzzle** on the Google Play Store.
+
+---
+
+## 1. Store Metadata & Copy
+
+### App Name
+`Shift Puzzle` *(12 / 30 characters)*
+
+### Short Description
+`Tactile toroidal grid puzzle game featuring the signature Memory Echo mechanic.` *(79 / 80 characters)*
+
+### Full Description
+```text
+Shift Puzzle is an elegant, minimalist spatial puzzle game where the board has no edges and your past moves can return to alter the present.
+
+Slide rows and columns across a 5×5 toroidal grid—pieces that slip off one edge seamlessly re-emerge on the opposite side. Plan your trajectories, manipulate geometric gems, and guide each piece to its designated target in as few moves as possible.
+
+MASTER THE MEMORY ECHO
+Discover the game's signature temporal mechanic: Memory Echo.
+• Record: Capture a precise sequence of row and column shifts.
+• Reposition: Strategically place your pieces into key positions.
+• Echo: Replay your recorded movement macro as a phantom sequence that rearranges the board automatically.
+• Finish: Solve complex spatial locks that are impossible through conventional movement alone.
+
+A 150-LEVEL CRAFTED CAMPAIGN
+Journey through 15 distinct thematic chapters designed with a steady, rewarding mastery curve:
+• Chapter I: The Foundations (Levels 1–10: single & dual-piece basics, toroidal wrapping)
+• Chapter II: Temporal Awakening (Levels 11–20: Echo introduction & macro execution)
+• Chapter III: Spatial Matrices (Levels 21–30: parity constraints & synchronized crossings)
+• Chapter IV: Complex Machines (Levels 31–40: cyclic permutations & multi-piece coordination)
+• Chapter V: Grandmaster (Levels 41–50: deep planning & spatial mastery)
+• Chapter VI: Advanced Echo (Levels 51–60: timing chains & displaced returns)
+• Chapter VII: Spatial Paradoxes (Levels 61–70: cross-axis dependencies & toroidal loops)
+• Chapter VIII: Temporal Machines (Levels 71–80: cascading replay mechanisms)
+• Chapter IX: Mastery (Levels 81–90: complex multi-piece routing)
+• Chapter X: The Final Shift (Levels 91–100: the first grand culmination)
+• Chapter XI: Harmonic Resonance (Levels 101–110: symmetric color topologies & dual balance)
+• Chapter XII: Quantum Entanglement (Levels 111–120: coupled axis shifts & parity locks)
+• Chapter XIII: The Echo Nexus (Levels 121–130: deep macro planning & phased replays)
+• Chapter XIV: Chrono Dynamics (Levels 131–140: strict move budgeting & momentum)
+• Chapter XV: The Singularity (Levels 141–150: the ultimate campaign climax culminating in "The Grand Singularity")
+
+FEATURES
+• Pure spatial logic: 100% deterministic, solver-verified boards.
+• Tactile feel: Smooth, fluid animations with responsive swipe controls and haptic feedback.
+• 3-Star mastery: Challenge yourself against exact minimal move pars on every level.
+• Optional hints: Stuck on a tricky board? Watch a short optional ad to reveal the next useful move.
+• Offline first: Play anywhere with full local progress saving—no account or internet required for gameplay.
+• Respectful design: No artificial energy, no lives, no timers, and no mid-puzzle interruptions.
+
+Can you master the loop and solve The Grand Singularity?
+```
+
+---
+
+## 2. Store Asset Specifications
+
+| Asset | Dimensions | Format | Details |
+|---|---|---|---|
+| **App Icon** | 512 × 512 px | 32-bit PNG | Flat, square without rounded corners (Google Play applies squircle mask automatically). Dark `#090D16` slate background with cyan ring and glowing jewel icon. Max 1024 KB. |
+| **Feature Graphic** | 1024 × 500 px | JPEG or 24-bit PNG | Centered title "Shift Puzzle", minimalist toroidal grid illustration, cyan/emerald glow accents. No promotional badges. |
+| **Phone Screenshots** | Min 2, Max 8 | JPEG or 24-bit PNG | Min 1080 px on short side, 16:9 or 9:16 aspect ratio: <br>1. *Toroidal Shifting*: Level 2 board showing wrapping mechanics.<br>2. *Memory Echo*: Level 10 showing amber recording HUD and ghost trajectory arcs.<br>3. *Campaign Map*: Chapter select dialog displaying star progress.<br>4. *Mastery Victory*: 3-Star dialog displaying optimal move comparison.<br>5. *Grandmaster Gauntlet*: Chapter 10 Level 95 showing multi-color complex matrix. |
+| **Tablet Screenshots** | Min 1 (7" & 10") | JPEG or 24-bit PNG | Capture running in landscape or responsive portrait tablet view. |
+
+---
+
+## 3. Store Categorization & Tags
+
+* **Application Type**: Game
+* **Category**: Puzzle
+* **Tags**:
+  * Puzzle
+  * Brain Games
+  * Minimalist
+  * Logic
+  * Single Player
+  * Offline
+
+---
+
+## 4. Content Rating (IARC Questionnaire)
+
+* **Violence**: None (0)
+* **Fear**: None (0)
+* **Sexuality**: None (0)
+* **Profanity**: None (0)
+* **Controlled Substances**: None (0)
+* **User-to-User Interaction / Chat**: None (0)
+* **Personal Data Sharing**: None (0)
+* **Expected Rating**: **PEGI 3** / **ESRB Everyone** / **USK 0** / **ACB G**
+
+---
+
+## 5. Google Play Data Safety Declaration
+
+*Note: Even though the core game collects 0 personal data and functions offline, the inclusion of Google Mobile Ads SDK requires declaring specific data types handled by the SDK.*
+
+### Data Collection & Security
+* **Does the app collect or share any user data?**: **Yes** *(due to advertising SDK)*
+* **Is all of the user data collected by your app encrypted in transit?**: **Yes** *(HTTPS / TLS)*
+* **Do you provide a way for users to request that their data be deleted?**: **Yes** *(via Google account ad privacy controls)*
+
+### Data Types to Declare:
+1. **Device or other IDs**:
+   * *Data Type*: Device or other IDs (Advertising ID / Android Ad ID).
+   * *Collected*: Yes (by Google Mobile Ads SDK).
+   * *Shared*: Yes (with Google ad network).
+   * *Ephemeral*: No.
+   * *Required or Optional*: Required for ad serving.
+   * *Purposes*: Advertising or marketing, Analytics, Fraud prevention and security.
+2. **App Activity**:
+   * *Data Type*: App interactions (ad clicks, views, impressions).
+   * *Collected*: Yes (by Google Mobile Ads SDK).
+   * *Purposes*: Advertising or marketing, Analytics.
+3. **App Info and Performance**:
+   * *Data Type*: Diagnostics, crash logs, performance metrics.
+   * *Collected*: Yes (by Google Mobile Ads SDK).
+   * *Purposes*: Analytics, Fraud prevention and security.
+4. **Location**:
+   * *Data Type*: Approximate location (inferred from IP address by Google ad network servers).
+   * *Purposes*: Advertising or marketing.
+
+### First-Party Data Controlled by Shift Puzzle:
+* **Account Info**: None.
+* **Financial Info**: None.
+* **Photos / Media / Files**: None.
+* **Contacts**: None.
+* **Microphone / Camera / Sensors**: None.
+* **Local Storage**: Game progress and settings are strictly stored in local device sandboxed `SharedPreferences` and are never uploaded to any server.
+
+---
+
+## 6. App Access & Ads Declaration
+
+* **App Access**: *All functionality is available without special access restrictions.* (No login credentials, test accounts, or subscriptions needed).
+* **Ads Declaration**: **Yes, this app contains ads.**
+* **Target Audience & Content**:
+  * Target age group: **13 and older** (13–15, 16–17, 18+).
+  * Does the app unintentionally appeal to children under 13?: **No** (Abstract geometric minimalist puzzle aesthetic).
+* **News Apps**: No.
+* **COVID-19 Contact Tracing**: No.
+* **Financial Features**: None.
+* **Government Apps**: No.
+
+---
+
+## 7. Developer & Support Contact
+
+* **Developer Name**: Shift Puzzle Team
+* **Contact Email**: support@shiftpuzzle.game *(or developer's direct contact email)*
+* **Privacy Policy URL**: `https://shiftpuzzle.game/privacy` *(hosted GitHub Pages or developer site)*

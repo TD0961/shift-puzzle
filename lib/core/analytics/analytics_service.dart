@@ -1,0 +1,156 @@
+import 'package:flutter/foundation.dart';
+
+/// Lightweight, privacy-first event telemetry contract.
+///
+/// Designed to capture game design insights without collecting personal identity,
+/// device identifiers, or tracking data.
+abstract class AnalyticsService {
+  void logGameStarted({required int highestUnlockedLevel});
+  void logLevelStarted(int levelId);
+  void logLevelCompleted({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+    required bool isNewBest,
+  });
+  void logLevelRestarted(int levelId);
+  void logUndoUsed(int levelId, int currentMoveCount);
+  void logEchoRecorded(int levelId, int shiftCount);
+  void logEchoReplayed(int levelId, int shiftCount);
+  void logChapterUnlocked(int chapterId);
+  void logSoundToggled(bool enabled);
+
+  // Task 12 Monetization & Tutorial Telemetry
+  void logTutorialStarted(int levelId);
+  void logTutorialCompleted(int levelId);
+  void logHintOffered(int levelId);
+  void logRewardedAdRequested(String placement);
+  void logRewardedAdCompleted(String placement);
+  void logRewardedAdFailed(String placement, String reason);
+  void logHintGranted(int levelId);
+  void logHintUsed(int levelId);
+  void logInterstitialRequested(int levelId);
+  void logInterstitialShown(int levelId);
+}
+
+/// Production default debug logger / no-op analytics service.
+class DebugAnalyticsService implements AnalyticsService {
+  final bool enableLogging;
+
+  const DebugAnalyticsService({this.enableLogging = kDebugMode});
+
+  void _log(String event, Map<String, dynamic> params) {
+    if (enableLogging) {
+      debugPrint('[Analytics] $event: $params');
+    }
+  }
+
+  @override
+  void logGameStarted({required int highestUnlockedLevel}) {
+    _log('game_started', {'highest_unlocked': highestUnlockedLevel});
+  }
+
+  @override
+  void logLevelStarted(int levelId) {
+    _log('level_started', {'level_id': levelId});
+  }
+
+  @override
+  void logLevelCompleted({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+    required bool isNewBest,
+  }) {
+    _log('level_completed', {
+      'level_id': levelId,
+      'moves': moves,
+      'optimal_moves': optimalMoves,
+      'delta_from_optimal': moves - optimalMoves,
+      'stars': stars,
+      'is_new_best': isNewBest,
+    });
+  }
+
+  @override
+  void logLevelRestarted(int levelId) {
+    _log('level_restarted', {'level_id': levelId});
+  }
+
+  @override
+  void logUndoUsed(int levelId, int currentMoveCount) {
+    _log('undo_used', {'level_id': levelId, 'move_count': currentMoveCount});
+  }
+
+  @override
+  void logEchoRecorded(int levelId, int shiftCount) {
+    _log('echo_recorded', {'level_id': levelId, 'shift_count': shiftCount});
+  }
+
+  @override
+  void logEchoReplayed(int levelId, int shiftCount) {
+    _log('echo_replayed', {'level_id': levelId, 'shift_count': shiftCount});
+  }
+
+  @override
+  void logChapterUnlocked(int chapterId) {
+    _log('chapter_unlocked', {'chapter_id': chapterId});
+  }
+
+  @override
+  void logSoundToggled(bool enabled) {
+    _log('sound_toggled', {'enabled': enabled});
+  }
+
+  @override
+  void logTutorialStarted(int levelId) {
+    _log('tutorial_started', {'level_id': levelId});
+  }
+
+  @override
+  void logTutorialCompleted(int levelId) {
+    _log('tutorial_completed', {'level_id': levelId});
+  }
+
+  @override
+  void logHintOffered(int levelId) {
+    _log('hint_offered', {'level_id': levelId});
+  }
+
+  @override
+  void logRewardedAdRequested(String placement) {
+    _log('rewarded_ad_requested', {'placement': placement});
+  }
+
+  @override
+  void logRewardedAdCompleted(String placement) {
+    _log('rewarded_ad_completed', {'placement': placement});
+  }
+
+  @override
+  void logRewardedAdFailed(String placement, String reason) {
+    _log('rewarded_ad_failed', {'placement': placement, 'reason': reason});
+  }
+
+  @override
+  void logHintGranted(int levelId) {
+    _log('hint_granted', {'level_id': levelId});
+  }
+
+  @override
+  void logHintUsed(int levelId) {
+    _log('hint_used', {'level_id': levelId});
+  }
+
+  @override
+  void logInterstitialRequested(int levelId) {
+    _log('interstitial_requested', {'level_id': levelId});
+  }
+
+  @override
+  void logInterstitialShown(int levelId) {
+    _log('interstitial_shown', {'level_id': levelId});
+  }
+}
