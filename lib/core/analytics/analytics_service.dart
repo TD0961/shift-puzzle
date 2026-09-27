@@ -44,6 +44,14 @@ abstract class AnalyticsService {
   void logInterstitialRequested(int levelId);
   void logInterstitialShown(int levelId);
 
+  // Task 16 Offline & Rewarded Hint Telemetry
+  void logHintNetworkUnavailable(int levelId, {String source = 'manual_hint'});
+  void logHintAdUnavailable(int levelId, {String source = 'manual_hint'});
+  void logHintAdRetry(int levelId, {required String outcome, String source = 'manual_hint'});
+  void logHintAdStarted(int levelId, {required String placement, String source = 'manual_hint'});
+  void logHintAdRewarded(int levelId, {required String placement, String source = 'manual_hint'});
+  void logHintAdFailed(int levelId, {required String placement, required String reason, String source = 'manual_hint'});
+
   // Task 14 Optimal Drift Nudge Telemetry
   void logOptimalDriftDetected({
     required int levelId,
@@ -250,6 +258,37 @@ class DebugAnalyticsService implements AnalyticsService {
   @override
   void logInterstitialShown(int levelId) {
     _log('interstitial_shown', {'level_id': levelId});
+  }
+
+  // Task 16 Offline & Rewarded Hint Telemetry
+  @override
+  void logHintNetworkUnavailable(int levelId, {String source = 'manual_hint'}) {
+    _log('hint_network_unavailable', {'level_id': levelId, 'source': source});
+  }
+
+  @override
+  void logHintAdUnavailable(int levelId, {String source = 'manual_hint'}) {
+    _log('hint_ad_unavailable', {'level_id': levelId, 'source': source});
+  }
+
+  @override
+  void logHintAdRetry(int levelId, {required String outcome, String source = 'manual_hint'}) {
+    _log('hint_ad_retry', {'level_id': levelId, 'outcome': outcome, 'source': source});
+  }
+
+  @override
+  void logHintAdStarted(int levelId, {required String placement, String source = 'manual_hint'}) {
+    _log('hint_ad_started', {'level_id': levelId, 'placement': placement, 'source': source});
+  }
+
+  @override
+  void logHintAdRewarded(int levelId, {required String placement, String source = 'manual_hint'}) {
+    _log('hint_ad_rewarded', {'level_id': levelId, 'placement': placement, 'source': source});
+  }
+
+  @override
+  void logHintAdFailed(int levelId, {required String placement, required String reason, String source = 'manual_hint'}) {
+    _log('hint_ad_failed', {'level_id': levelId, 'placement': placement, 'reason': reason, 'source': source});
   }
 
   @override

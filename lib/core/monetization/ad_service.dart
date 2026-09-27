@@ -26,6 +26,9 @@ abstract class AdService {
     required int completedLevelCount,
   });
 
+  /// Preloads a rewarded ad if supported and conditions are appropriate.
+  Future<void> preloadRewardedAd();
+
   /// Displays an optional rewarded ad.
   ///
   /// Calls [onRewardEarned] upon successful completion of the ad.
@@ -64,6 +67,9 @@ class NoOpAdService implements AdService {
 
   @override
   bool get isRewardedAdReady => true;
+
+  @override
+  Future<void> preloadRewardedAd() async {}
 
   @override
   Future<bool> showInterstitialIfAppropriate({

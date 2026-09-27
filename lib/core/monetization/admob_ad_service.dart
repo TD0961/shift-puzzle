@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../connectivity/connectivity_service.dart';
 import 'ad_service.dart';
 
 /// Production-ready AdMob implementation of [AdService].
@@ -35,6 +36,7 @@ class AdMobAdService implements AdService {
   bool _isLoadingRewarded = false;
 
   final bool? isSupported;
+  final ConnectivityService? connectivityService;
 
   AdMobAdService({
     this.cooldownDuration = const Duration(seconds: 180),
@@ -42,6 +44,7 @@ class AdMobAdService implements AdService {
     this.customInterstitialUnitId,
     this.customRewardedUnitId,
     this.isSupported,
+    this.connectivityService,
   });
 
   bool get _isMobilePlatform {
@@ -101,8 +104,15 @@ class AdMobAdService implements AdService {
   bool get isReady => _isInitialized && _interstitialAd != null;
 
   @override
-  bool get isRewardedAdReady =>
-      !_isInitialized || !_isMobilePlatform || _rewardedAd != null;
+  bool get isRewardedAdReady {
+    if (!_isInitialized || !_isMobilePlatform) return true;
+    return _rewardedAd != null;
+  }
+
+  @override
+  Future<void> preloadRewardedAd() async {
+    _loadRewardedAd();
+  }
 
   void _loadInterstitialAd() {
     if (!_isMobilePlatform || !_isInitialized || _isLoadingInterstitial || _interstitialAd != null) return;
@@ -132,8 +142,16 @@ class AdMobAdService implements AdService {
     }
   }
 
-  void _loadRewardedAd() {
+  void _loadRewardedAd() async {
     if (!_isMobilePlatform || !_isInitialized || _isLoadingRewarded || _rewardedAd != null) return;
+    if (connectivityService != null) {
+      final isOnline = await connectivityService!.hasInternetConnection();
+      if (!isOnline) {
+        debugPrint('[AdMobAdService] Device is offline. Skipping rewarded ad load.');
+        return;
+      }
+    }
+    if (_isLoadingRewarded || _rewardedAd != null) return;
     _isLoadingRewarded = true;
 
     try {
@@ -235,17 +253,30 @@ class AdMobAdService implements AdService {
     required String placement,
     required VoidCallback onRewardEarned,
   }) async {
-    if (!_isMobilePlatform || _rewardedAd == null) {
-      debugPrint('[AdMobAdService] Rewarded ad not ready for "$placement" (granting fallback reward).');
+    if (!_isInitialized || !_isMobilePlatform) {
+      debugPrint('[AdMobAdService] Non-mobile or uninitialized environment. Running mock rewarded ad.');
       onRewardEarned();
-      _loadRewardedAd();
       return true;
+    }
+
+    if (_rewardedAd == null) {
+      debugPrint('[AdMobAdService] Rewarded ad not ready for "$placement".');
+      _loadRewardedAd();
+      return false;
     }
 
     final completer = Completer<bool>();
     final ad = _rewardedAd!;
     _rewardedAd = null;
     bool userEarned = false;
+    bool rewardDispatched = false;
+
+    void dispatchRewardOnce() {
+      if (!rewardDispatched && userEarned) {
+        rewardDispatched = true;
+        onRewardEarned();
+      }
+    }
 
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
@@ -255,7 +286,7 @@ class AdMobAdService implements AdService {
         debugPrint('[AdMobAdService] Rewarded ad dismissed.');
         ad.dispose();
         _loadRewardedAd();
-        if (userEarned) onRewardEarned();
+        dispatchRewardOnce();
         if (!completer.isCompleted) completer.complete(userEarned);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {

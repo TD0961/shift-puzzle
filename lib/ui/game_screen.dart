@@ -12,6 +12,9 @@ import '../game/scenes/shift_puzzle_game.dart';
 import 'game_controls.dart';
 import 'game_header.dart';
 import 'level_select_dialog.dart';
+import '../core/connectivity/connectivity_service.dart';
+import 'hint_unavailable_dialog.dart';
+import 'internet_needed_dialog.dart';
 import 'optimal_drift_nudge_dialog.dart';
 import 'win_dialog.dart';
 import 'widgets/tutorial_overlay.dart';
@@ -20,14 +23,17 @@ class GameScreen extends StatefulWidget {
   final PlayerProgress? progress;
   final AdService adService;
   final AnalyticsService analytics;
+  final ConnectivityService connectivityService;
 
   GameScreen({
     super.key,
     this.progress,
     AdService? adService,
     AnalyticsService? analytics,
+    ConnectivityService? connectivityService,
   })  : adService = adService ?? NoOpAdService(),
-        analytics = analytics ?? const DebugAnalyticsService();
+        analytics = analytics ?? const DebugAnalyticsService(),
+        connectivityService = connectivityService ?? const NetworkConnectivityService();
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -44,6 +50,7 @@ class _GameScreenState extends State<GameScreen> {
   Offset _panCurrent = Offset.zero;
   bool _isWinDialogShowing = false;
   bool _isModalShowing = false;
+  bool _isRequestingAd = false;
   bool _isTutorialDismissed = false;
 
   bool get _showTutorialOverlay {
@@ -421,11 +428,13 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _handleRequestHint() {
+  void _handleRequestHint() async {
     if (_game.isAnimating ||
         _game.isEchoReplaying ||
         _engine.isSolved ||
-        _isWinDialogShowing) {
+        _isWinDialogShowing ||
+        _isModalShowing ||
+        _isRequestingAd) {
       return;
     }
 
@@ -437,6 +446,17 @@ class _GameScreenState extends State<GameScreen> {
           backgroundColor: Color(0xFF1E293B),
         ),
       );
+      return;
+    }
+
+    _isRequestingAd = true;
+    final isOnline = await widget.connectivityService.hasInternetConnection();
+    _isRequestingAd = false;
+    if (!mounted) return;
+
+    if (!isOnline) {
+      widget.analytics.logHintNetworkUnavailable(_currentLevelId, source: 'manual_hint');
+      _showInternetNeededDialog(source: 'manual_hint');
       return;
     }
 
@@ -636,11 +656,65 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _executeRewardedAdForHint({String source = 'manual_hint'}) {
+  void _executeRewardedAdForHint({String source = 'manual_hint'}) async {
+    if (_isRequestingAd) return;
+    _isRequestingAd = true;
+
     final placement = source == 'optimal_drift'
         ? 'optimal_drift_level_$_currentLevelId'
         : 'hint_level_$_currentLevelId';
+
+    // 1. Connectivity check
+    final isOnline = await widget.connectivityService.hasInternetConnection();
+    if (!mounted) {
+      _isRequestingAd = false;
+      return;
+    }
+
+    if (!isOnline) {
+      _isRequestingAd = false;
+      if (source == 'optimal_drift') {
+        widget.analytics.logOptimalDriftAdFailed(
+          levelId: _currentLevelId,
+          placement: placement,
+          reason: 'network_unavailable',
+        );
+      }
+      widget.analytics.logHintNetworkUnavailable(_currentLevelId, source: source);
+      _showInternetNeededDialog(source: source);
+      return;
+    }
+
+    // 2. Check if ad is ready, or wait briefly if loading
+    if (!widget.adService.isRewardedAdReady) {
+      await widget.adService.preloadRewardedAd();
+      for (int i = 0; i < 4 && !widget.adService.isRewardedAdReady && mounted; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      }
+    }
+
+    if (!mounted) {
+      _isRequestingAd = false;
+      return;
+    }
+
+    if (!widget.adService.isRewardedAdReady) {
+      _isRequestingAd = false;
+      if (source == 'optimal_drift') {
+        widget.analytics.logOptimalDriftAdFailed(
+          levelId: _currentLevelId,
+          placement: placement,
+          reason: 'ad_unavailable',
+        );
+      }
+      widget.analytics.logHintAdUnavailable(_currentLevelId, source: source);
+      _showHintUnavailableDialog(source: source);
+      return;
+    }
+
+    // 3. Ad is ready - show it
     widget.analytics.logRewardedAdRequested(placement);
+    widget.analytics.logHintAdStarted(_currentLevelId, placement: placement, source: source);
     if (source == 'optimal_drift') {
       widget.analytics.logOptimalDriftAdStarted(
         levelId: _currentLevelId,
@@ -648,57 +722,21 @@ class _GameScreenState extends State<GameScreen> {
       );
     }
 
-    widget.adService.showRewardedAd(
-      placement: placement,
-      onRewardEarned: () {
-        widget.analytics.logRewardedAdCompleted(placement);
-        if (source == 'optimal_drift') {
-          widget.analytics.logOptimalDriftAdRewarded(
-            levelId: _currentLevelId,
-            placement: placement,
-          );
-        }
-        final level = LevelDefinitions.getLevel(_currentLevelId);
-        final nextMove = PuzzleSolver.getNextBestMove(_engine.currentGrid, level);
+    bool rewardEarned = false;
+    bool rewardDispatched = false;
 
-        if (!mounted) return;
-        if (nextMove != null) {
-          widget.analytics.logHintGranted(_currentLevelId);
-          widget.analytics.logHintCompleted(_currentLevelId);
-          if (source == 'optimal_drift') {
-            widget.analytics.logOptimalDriftHintRevealed(
-              levelId: _currentLevelId,
-              moveCount: _engine.moveCount,
-            );
-          }
-          _usedHintOnCurrentLevel = true;
-          setState(() {
-            _game.setHint(nextMove);
-          });
-          _feedback?.playPieceSeated();
-          widget.analytics.logHintUsed(_currentLevelId);
+    try {
+      await widget.adService.showRewardedAd(
+        placement: placement,
+        onRewardEarned: () {
+          if (rewardDispatched) return;
+          rewardDispatched = true;
+          rewardEarned = true;
+          _grantHint(source: source, placement: placement);
+        },
+      );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Hint: Shift ${nextMove.isRow ? 'Row' : 'Column'} ${nextMove.index + 1} ${nextMove.direction.name.toUpperCase()}',
-                style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFFEF3C7)),
-              ),
-              backgroundColor: const Color(0xFF78350F),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        } else {
-          widget.analytics.logHintFailed(_currentLevelId, 'already_at_solution');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('You are already close to the solution!'),
-              backgroundColor: Color(0xFF1E293B),
-            ),
-          );
-        }
-      },
-    ).then((rewardEarned) {
+      _isRequestingAd = false;
       if (!rewardEarned && mounted) {
         if (source == 'optimal_drift') {
           widget.analytics.logOptimalDriftAdFailed(
@@ -707,6 +745,12 @@ class _GameScreenState extends State<GameScreen> {
             reason: 'ad_not_completed',
           );
         }
+        widget.analytics.logHintAdFailed(
+          _currentLevelId,
+          placement: placement,
+          reason: 'ad_not_completed',
+          source: source,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Ad was not completed. Keep solving!'),
@@ -715,6 +759,163 @@ class _GameScreenState extends State<GameScreen> {
           ),
         );
       }
+    } catch (e) {
+      _isRequestingAd = false;
+      if (source == 'optimal_drift') {
+        widget.analytics.logOptimalDriftAdFailed(
+          levelId: _currentLevelId,
+          placement: placement,
+          reason: 'ad_error',
+        );
+      }
+      widget.analytics.logHintAdFailed(
+        _currentLevelId,
+        placement: placement,
+        reason: 'ad_error',
+        source: source,
+      );
+      if (mounted) {
+        _showHintUnavailableDialog(source: source);
+      }
+    }
+  }
+
+  void _grantHint({required String source, required String placement}) {
+    widget.analytics.logRewardedAdCompleted(placement);
+    widget.analytics.logHintAdRewarded(
+      _currentLevelId,
+      placement: placement,
+      source: source,
+    );
+    if (source == 'optimal_drift') {
+      widget.analytics.logOptimalDriftAdRewarded(
+        levelId: _currentLevelId,
+        placement: placement,
+      );
+    }
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    final nextMove = PuzzleSolver.getNextBestMove(_engine.currentGrid, level);
+
+    if (!mounted) return;
+    if (nextMove != null) {
+      widget.analytics.logHintGranted(_currentLevelId);
+      widget.analytics.logHintCompleted(_currentLevelId);
+      if (source == 'optimal_drift') {
+        widget.analytics.logOptimalDriftHintRevealed(
+          levelId: _currentLevelId,
+          moveCount: _engine.moveCount,
+        );
+      }
+      _usedHintOnCurrentLevel = true;
+      setState(() {
+        _game.setHint(nextMove);
+      });
+      _feedback?.playPieceSeated();
+      widget.analytics.logHintUsed(_currentLevelId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Hint: Shift ${nextMove.isRow ? 'Row' : 'Column'} ${nextMove.index + 1} ${nextMove.direction.name.toUpperCase()}',
+            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFFEF3C7)),
+          ),
+          backgroundColor: const Color(0xFF78350F),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      widget.analytics.logHintFailed(_currentLevelId, 'already_at_solution');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You are already close to the solution!'),
+          backgroundColor: Color(0xFF1E293B),
+        ),
+      );
+    }
+  }
+
+  void _showInternetNeededDialog({required String source}) {
+    if (_isModalShowing) return;
+    _isModalShowing = true;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => InternetNeededDialog(
+        onTryAgain: () async {
+          final isConnected = await widget.connectivityService.hasInternetConnection();
+          if (isConnected) {
+            widget.analytics.logHintAdRetry(
+              _currentLevelId,
+              outcome: 'success',
+              source: source,
+            );
+            if (ctx.mounted) {
+              Navigator.of(ctx).pop();
+            }
+            if (mounted) {
+              _executeRewardedAdForHint(source: source);
+            }
+            return true;
+          } else {
+            widget.analytics.logHintAdRetry(
+              _currentLevelId,
+              outcome: 'still_offline',
+              source: source,
+            );
+            return false;
+          }
+        },
+        onNotNow: () {
+          Navigator.of(ctx).pop();
+        },
+      ),
+    ).then((_) {
+      _isModalShowing = false;
+    });
+  }
+
+  void _showHintUnavailableDialog({required String source}) {
+    if (_isModalShowing) return;
+    _isModalShowing = true;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => HintUnavailableDialog(
+        onTryAgain: () async {
+          await widget.adService.preloadRewardedAd();
+          for (int i = 0; i < 4 && !widget.adService.isRewardedAdReady && mounted; i++) {
+            await Future<void>.delayed(const Duration(milliseconds: 300));
+          }
+          if (widget.adService.isRewardedAdReady) {
+            widget.analytics.logHintAdRetry(
+              _currentLevelId,
+              outcome: 'success',
+              source: source,
+            );
+            if (ctx.mounted) {
+              Navigator.of(ctx).pop();
+            }
+            if (mounted) {
+              _executeRewardedAdForHint(source: source);
+            }
+            return true;
+          } else {
+            widget.analytics.logHintAdRetry(
+              _currentLevelId,
+              outcome: 'still_unavailable',
+              source: source,
+            );
+            return false;
+          }
+        },
+        onNotNow: () {
+          Navigator.of(ctx).pop();
+        },
+      ),
+    ).then((_) {
+      _isModalShowing = false;
     });
   }
 

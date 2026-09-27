@@ -96,6 +96,14 @@ void main() {
         ),
         returnsNormally,
       );
+
+      // Task 16 Telemetry
+      expect(() => analytics.logHintNetworkUnavailable(6, source: 'manual_hint'), returnsNormally);
+      expect(() => analytics.logHintAdUnavailable(6, source: 'optimal_drift'), returnsNormally);
+      expect(() => analytics.logHintAdRetry(6, outcome: 'success', source: 'manual_hint'), returnsNormally);
+      expect(() => analytics.logHintAdStarted(6, placement: 'hint_level_6', source: 'manual_hint'), returnsNormally);
+      expect(() => analytics.logHintAdRewarded(6, placement: 'hint_level_6', source: 'manual_hint'), returnsNormally);
+      expect(() => analytics.logHintAdFailed(6, placement: 'hint_level_6', reason: 'ad_not_completed', source: 'manual_hint'), returnsNormally);
     });
 
     test('DebugAnalyticsService handles disabled logging cleanly', () {

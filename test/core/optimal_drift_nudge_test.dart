@@ -163,6 +163,9 @@ class TestMockAdService implements AdService {
   bool get isRewardedAdReady => true;
 
   @override
+  Future<void> preloadRewardedAd() async {}
+
+  @override
   Future<void> initialize() async {}
 
   @override
