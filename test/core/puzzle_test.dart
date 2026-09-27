@@ -286,13 +286,11 @@ void main() {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(5));
       expect(engine.isSolved, isFalse);
 
-      // Col 1 down 2 -> circle to (2, 1)
-      engine.shiftColumn(1, ShiftDirection.down);
-      engine.shiftColumn(1, ShiftDirection.down);
-
-      // Col 3 up 2 -> diamond to (2, 3)
+      // Optimal 4-shift sequence: Col 2 up -> Col 3 up -> Col 3 up -> Row 1 left
+      engine.shiftColumn(2, ShiftDirection.up);
       engine.shiftColumn(3, ShiftDirection.up);
       engine.shiftColumn(3, ShiftDirection.up);
+      engine.shiftRow(1, ShiftDirection.left);
 
       expect(engine.isSolved, isTrue);
       expect(engine.moveCount, equals(4));
@@ -302,16 +300,12 @@ void main() {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(6));
       expect(engine.isSolved, isFalse);
 
-      // Col 1 down 2 -> circle to (2, 1)
+      // Optimal 5-shift sequence: Row 0 left -> Row 2 left -> Col 1 down -> Row 2 left -> Row 1 right
+      engine.shiftRow(0, ShiftDirection.left);
+      engine.shiftRow(2, ShiftDirection.left);
       engine.shiftColumn(1, ShiftDirection.down);
-      engine.shiftColumn(1, ShiftDirection.down);
-
-      // Col 2 up 2 -> diamond to (2, 2)
-      engine.shiftColumn(2, ShiftDirection.up);
-      engine.shiftColumn(2, ShiftDirection.up);
-
-      // Col 3 down 1 -> rose to (2, 3)
-      engine.shiftColumn(3, ShiftDirection.down);
+      engine.shiftRow(2, ShiftDirection.left);
+      engine.shiftRow(1, ShiftDirection.right);
 
       expect(engine.isSolved, isTrue);
       expect(engine.moveCount, equals(5));
@@ -321,12 +315,12 @@ void main() {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(7));
       expect(engine.isSolved, isFalse);
 
-      // Optimal 5-shift sequence: Col 3 up -> Col 3 up -> Col 2 down -> Col 1 down -> Col 1 down
-      engine.shiftColumn(3, ShiftDirection.up);
-      engine.shiftColumn(3, ShiftDirection.up);
-      engine.shiftColumn(2, ShiftDirection.down);
-      engine.shiftColumn(1, ShiftDirection.down);
-      engine.shiftColumn(1, ShiftDirection.down);
+      // Optimal 5-shift sequence: Row 1 left -> Col 1 up -> Row 4 right -> Col 2 up -> Row 1 right
+      engine.shiftRow(1, ShiftDirection.left);
+      engine.shiftColumn(1, ShiftDirection.up);
+      engine.shiftRow(4, ShiftDirection.right);
+      engine.shiftColumn(2, ShiftDirection.up);
+      engine.shiftRow(1, ShiftDirection.right);
 
       expect(engine.isSolved, isTrue);
       expect(engine.moveCount, equals(5));
@@ -336,13 +330,13 @@ void main() {
       final engine = PuzzleEngine(LevelDefinitions.getLevel(8));
       expect(engine.isSolved, isFalse);
 
-      // Optimal 6-shift sequence: Row 0 left -> Row 2 left -> Col 2 up -> Col 1 down -> Row 2 left -> Row 1 right
-      engine.shiftRow(0, ShiftDirection.left);
-      engine.shiftRow(2, ShiftDirection.left);
+      // Optimal 6-shift sequence: Row 3 right -> Col 4 down -> Col 4 down -> Col 2 up -> Col 2 up -> Col 0 up
+      engine.shiftRow(3, ShiftDirection.right);
+      engine.shiftColumn(4, ShiftDirection.down);
+      engine.shiftColumn(4, ShiftDirection.down);
       engine.shiftColumn(2, ShiftDirection.up);
-      engine.shiftColumn(1, ShiftDirection.down);
-      engine.shiftRow(2, ShiftDirection.left);
-      engine.shiftRow(1, ShiftDirection.right);
+      engine.shiftColumn(2, ShiftDirection.up);
+      engine.shiftColumn(0, ShiftDirection.up);
 
       expect(engine.isSolved, isTrue);
       expect(engine.moveCount, equals(6));

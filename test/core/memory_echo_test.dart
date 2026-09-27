@@ -390,13 +390,13 @@ void main() {
       expect(engine.isSolved, isFalse);
 
       // Solve with standard optimal path found by solver:
-      // [Row 1 right, Col 3 up, Col 3 up, Col 2 down, Col 2 down, Row 3 left]
+      // [Row 2 left, Row 3 right, Row 3 right, Col 1 up, Row 2 left, Row 1 right]
+      engine.shiftRow(2, ShiftDirection.left);
+      engine.shiftRow(3, ShiftDirection.right);
+      engine.shiftRow(3, ShiftDirection.right);
+      engine.shiftColumn(1, ShiftDirection.up);
+      engine.shiftRow(2, ShiftDirection.left);
       engine.shiftRow(1, ShiftDirection.right);
-      engine.shiftColumn(3, ShiftDirection.up);
-      engine.shiftColumn(3, ShiftDirection.up);
-      engine.shiftColumn(2, ShiftDirection.down);
-      engine.shiftColumn(2, ShiftDirection.down);
-      engine.shiftRow(3, ShiftDirection.left);
 
       expect(engine.isSolved, isTrue);
       expect(engine.moveCount, equals(6));

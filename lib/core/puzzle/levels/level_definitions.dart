@@ -290,99 +290,11 @@ class LevelDefinitions {
   // LEVEL 5: Dual Alignment
   static PuzzleLevel _buildLevel5() {
     final grid = _createEmptyGrid();
-    grid[0][1] = PieceType.cyanCircle;
-    grid[4][3] = PieceType.amberDiamond;
-
+    grid[3][3] = PieceType.cyanCircle;
+    grid[4][2] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 5,
       title: 'Dual Alignment',
-      hint: 'Shift independent columns into the target row.',
-      initialGrid: grid,
-      targets: const [
-        PuzzleTarget(
-          pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 3),
-        ),
-      ],
-      optimalMoves: 4,
-    );
-  }
-
-  // LEVEL 6: Trio Harmony
-  static PuzzleLevel _buildLevel6() {
-    final grid = _createEmptyGrid();
-    grid[0][1] = PieceType.cyanCircle;
-    grid[4][2] = PieceType.amberDiamond;
-    grid[1][3] = PieceType.roseSquare;
-
-    return PuzzleLevel(
-      id: 6,
-      title: 'Trio Harmony',
-      hint: 'Bring three pieces from different columns into harmony.',
-      initialGrid: grid,
-      targets: const [
-        PuzzleTarget(
-          pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 2),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 3),
-        ),
-      ],
-      optimalMoves: 5,
-    );
-  }
-
-  // LEVEL 7: Triad Orbit
-  static PuzzleLevel _buildLevel7() {
-    final grid = _createEmptyGrid();
-    grid[0][1] = PieceType.cyanCircle;
-    grid[4][3] = PieceType.amberDiamond;
-    grid[1][2] = PieceType.roseSquare;
-
-    return PuzzleLevel(
-      id: 7,
-      title: 'Triad Orbit',
-      hint: 'Bring three drifting stars into horizontal harmony.',
-      initialGrid: grid,
-      targets: const [
-        PuzzleTarget(
-          pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 2),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 3),
-        ),
-      ],
-      optimalMoves: 5,
-    );
-  }
-
-  // LEVEL 8: Cross Alignment
-  static PuzzleLevel _buildLevel8() {
-    final grid = _createEmptyGrid();
-    grid[0][2] = PieceType.cyanCircle;
-    grid[4][2] = PieceType.amberDiamond;
-    grid[2][0] = PieceType.roseSquare;
-
-    return PuzzleLevel(
-      id: 8,
-      title: 'Cross Alignment',
-      hint: 'A central cross formation. Align vertical jewels before the lateral rose square.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -393,9 +305,89 @@ class LevelDefinitions {
           pieceType: PieceType.amberDiamond,
           position: BoardPosition(3, 2),
         ),
+      ],
+      optimalMoves: 4,
+    );
+  }
+
+  // LEVEL 6: Trio Harmony
+  static PuzzleLevel _buildLevel6() {
+    final grid = _createEmptyGrid();
+    grid[0][2] = PieceType.cyanCircle;
+    grid[2][3] = PieceType.amberDiamond;
+    grid[3][2] = PieceType.roseSquare;
+    return PuzzleLevel(
+      id: 6,
+      title: 'Trio Harmony',
+      initialGrid: grid,
+      targets: const [
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(1, 2),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(2, 1),
+        ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 3),
+          position: BoardPosition(3, 2),
+        ),
+      ],
+      optimalMoves: 5,
+    );
+  }
+
+  // LEVEL 7: Triad Orbit
+  static PuzzleLevel _buildLevel7() {
+    final grid = _createEmptyGrid();
+    grid[0][1] = PieceType.emeraldHexagon;
+    grid[1][1] = PieceType.cyanCircle;
+    grid[2][2] = PieceType.amberDiamond;
+    return PuzzleLevel(
+      id: 7,
+      title: 'Triad Orbit',
+      initialGrid: grid,
+      targets: const [
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(1, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(1, 3),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(3, 2),
+        ),
+      ],
+      optimalMoves: 5,
+    );
+  }
+
+  // LEVEL 8: Cross Alignment
+  static PuzzleLevel _buildLevel8() {
+    final grid = _createEmptyGrid();
+    grid[0][4] = PieceType.amberDiamond;
+    grid[2][2] = PieceType.roseSquare;
+    grid[3][4] = PieceType.cyanCircle;
+    return PuzzleLevel(
+      id: 8,
+      title: 'Cross Alignment',
+      initialGrid: grid,
+      targets: const [
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(2, 0),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(2, 4),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(0, 2),
         ),
       ],
       optimalMoves: 6,
@@ -435,7 +427,6 @@ class LevelDefinitions {
     grid[0][2] = PieceType.cyanCircle;
     grid[2][2] = PieceType.roseSquare;
     grid[4][2] = PieceType.amberDiamond;
-
     return PuzzleLevel(
       id: 10,
       title: 'The Conveyor',
@@ -467,27 +458,25 @@ class LevelDefinitions {
   // LEVEL 11: Temporal Cross
   static PuzzleLevel _buildLevel11() {
     final grid = _createEmptyGrid();
-    grid[1][1] = PieceType.cyanCircle;
-    grid[3][3] = PieceType.amberDiamond;
-    grid[2][2] = PieceType.emeraldHexagon;
-
+    grid[2][0] = PieceType.emeraldHexagon;
+    grid[2][2] = PieceType.cyanCircle;
+    grid[3][0] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 11,
       title: 'Temporal Cross',
-      hint: 'Coordinate intersecting axes with Memory Echo.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(3, 1),
+          position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(1, 3),
+          position: BoardPosition(3, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(4, 2),
+          position: BoardPosition(2, 3),
         ),
       ],
       optimalMoves: 6,
@@ -498,48 +487,53 @@ class LevelDefinitions {
   // LEVEL 12: Dual Frequency
   static PuzzleLevel _buildLevel12() {
     final grid = _createEmptyGrid();
-    grid[3][1] = PieceType.roseSquare;
-    grid[4][3] = PieceType.violetTriangle;
-
+    grid[2][1] = PieceType.violetTriangle;
+    grid[2][3] = PieceType.cyanCircle;
+    grid[3][0] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 12,
       title: 'Dual Frequency',
-      hint: 'Program parallel column pulses with Memory Echo.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(1, 1),
+          position: BoardPosition(2, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(1, 3),
+          position: BoardPosition(2, 3),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(3, 2),
         ),
       ],
-      optimalMoves: 4,
-      hasMemoryEcho: true,
+      optimalMoves: 5,
     );
   }
 
   // LEVEL 13: The Relay
   static PuzzleLevel _buildLevel13() {
     final grid = _createEmptyGrid();
-    grid[0][0] = PieceType.amberDiamond;
-    grid[4][0] = PieceType.emeraldHexagon;
-
+    grid[2][2] = PieceType.emeraldHexagon;
+    grid[4][2] = PieceType.amberDiamond;
+    grid[4][3] = PieceType.violetTriangle;
     return PuzzleLevel(
       id: 13,
       title: 'The Relay',
-      hint: 'Relay pieces across the toroidal boundary into row 2.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(2, 2),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.violetTriangle,
+          position: BoardPosition(3, 2),
         ),
       ],
       optimalMoves: 6,
@@ -550,19 +544,17 @@ class LevelDefinitions {
   // LEVEL 14: Parallel Streams
   static PuzzleLevel _buildLevel14() {
     final grid = _createEmptyGrid();
-    grid[0][0] = PieceType.cyanCircle;
-    grid[2][4] = PieceType.roseSquare;
-    grid[4][1] = PieceType.violetTriangle;
-
+    grid[2][2] = PieceType.violetTriangle;
+    grid[3][0] = PieceType.cyanCircle;
+    grid[3][2] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 14,
-      title: 'Parallel Streams',
-      hint: 'Gather three streams into the central column.',
+      title: 'Interference Matrix',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(0, 2),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
@@ -570,34 +562,31 @@ class LevelDefinitions {
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(4, 2),
+          position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 5,
-      hasMemoryEcho: true,
+      optimalMoves: 6,
     );
   }
 
   // LEVEL 15: Orbit & Ghost
   static PuzzleLevel _buildLevel15() {
     final grid = _createEmptyGrid();
-    grid[3][2] = PieceType.cyanCircle;
-    grid[2][4] = PieceType.amberDiamond;
-    grid[1][2] = PieceType.emeraldHexagon;
-
+    grid[0][0] = PieceType.cyanCircle;
+    grid[3][1] = PieceType.emeraldHexagon;
+    grid[4][0] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 15,
       title: 'Orbit & Ghost',
-      hint: 'Orbit around the center pad, then Echo to seat.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(1, 2),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 1),
+          position: BoardPosition(2, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
@@ -612,61 +601,61 @@ class LevelDefinitions {
   // LEVEL 16: Cascade Lock
   static PuzzleLevel _buildLevel16() {
     final grid = _createEmptyGrid();
-    grid[1][3] = PieceType.amberDiamond;
-    grid[4][2] = PieceType.roseSquare;
-    grid[3][1] = PieceType.emeraldHexagon;
-
+    grid[1][0] = PieceType.cyanCircle;
+    grid[1][4] = PieceType.amberDiamond;
+    grid[2][4] = PieceType.roseSquare;
+    grid[3][3] = PieceType.emeraldHexagon;
     return PuzzleLevel(
       id: 16,
       title: 'Cascade Lock',
-      hint: 'Form the diagonal staircase from row and column shifts.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(1, 2),
+        ),
+        PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(1, 1),
+          position: BoardPosition(2, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(3, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(3, 3),
+          position: BoardPosition(2, 1),
         ),
       ],
-      optimalMoves: 6,
-      hasMemoryEcho: true,
+      optimalMoves: 7,
     );
   }
 
   // LEVEL 17: Shift Synchrony
   static PuzzleLevel _buildLevel17() {
     final grid = _createEmptyGrid();
-    grid[3][1] = PieceType.cyanCircle;
-    grid[2][2] = PieceType.violetTriangle;
-    grid[4][3] = PieceType.amberDiamond;
-
+    grid[3][3] = PieceType.violetTriangle;
+    grid[4][2] = PieceType.amberDiamond;
+    grid[4][3] = PieceType.cyanCircle;
     return PuzzleLevel(
       id: 17,
       title: 'Shift Synchrony',
-      hint: 'Align all three pieces along the top header row.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(0, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.violetTriangle,
           position: BoardPosition(0, 2),
         ),
         PuzzleTarget(
+          pieceType: PieceType.violetTriangle,
+          position: BoardPosition(2, 2),
+        ),
+        PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(0, 3),
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 5,
+      optimalMoves: 6,
       hasMemoryEcho: true,
     );
   }
@@ -674,77 +663,46 @@ class LevelDefinitions {
   // LEVEL 18: Phantom Axis
   static PuzzleLevel _buildLevel18() {
     final grid = _createEmptyGrid();
-    grid[0][0] = PieceType.roseSquare;
-    grid[4][2] = PieceType.emeraldHexagon;
-    grid[1][4] = PieceType.violetTriangle;
-
+    grid[1][1] = PieceType.violetTriangle;
+    grid[2][1] = PieceType.emeraldHexagon;
+    grid[3][1] = PieceType.amberDiamond;
+    grid[4][1] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 18,
       title: 'Phantom Axis',
-      hint: 'Drop three vertical channels into the central equator.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 0),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(1, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(3, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 6,
-      hasMemoryEcho: true,
+      optimalMoves: 7,
     );
   }
 
   // LEVEL 19: Mirror Track
   static PuzzleLevel _buildLevel19() {
     final grid = _createEmptyGrid();
-    grid[4][1] = PieceType.cyanCircle;
-    grid[2][0] = PieceType.amberDiamond;
-    grid[3][3] = PieceType.roseSquare;
-
+    grid[1][3] = PieceType.cyanCircle;
+    grid[1][4] = PieceType.amberDiamond;
+    grid[2][1] = PieceType.roseSquare;
+    grid[4][4] = PieceType.emeraldHexagon;
     return PuzzleLevel(
       id: 19,
       title: 'Mirror Track',
-      hint: 'Balance symmetric reflections across the core.',
-      initialGrid: grid,
-      targets: const [
-        PuzzleTarget(
-          pieceType: PieceType.cyanCircle,
-          position: BoardPosition(1, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 2),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.roseSquare,
-          position: BoardPosition(1, 3),
-        ),
-      ],
-      optimalMoves: 6,
-      hasMemoryEcho: true,
-    );
-  }
-
-  // LEVEL 20: Temporal Threshold (Chapter 2 Capstone)
-  static PuzzleLevel _buildLevel20() {
-    final grid = _createEmptyGrid();
-    grid[4][2] = PieceType.cyanCircle;
-    grid[2][4] = PieceType.amberDiamond;
-    grid[2][0] = PieceType.roseSquare;
-    grid[0][2] = PieceType.emeraldHexagon;
-
-    return PuzzleLevel(
-      id: 20,
-      title: 'Temporal Threshold',
-      hint: 'The Chapter 2 climax: weave the 4-piece diamond shield.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -764,6 +722,40 @@ class LevelDefinitions {
           position: BoardPosition(3, 2),
         ),
       ],
+      optimalMoves: 7,
+      hasMemoryEcho: true,
+    );
+  }
+
+  // LEVEL 20: Temporal Threshold (Chapter 2 Capstone)
+  static PuzzleLevel _buildLevel20() {
+    final grid = _createEmptyGrid();
+    grid[0][2] = PieceType.emeraldHexagon;
+    grid[2][0] = PieceType.roseSquare;
+    grid[2][3] = PieceType.cyanCircle;
+    grid[3][3] = PieceType.amberDiamond;
+    return PuzzleLevel(
+      id: 20,
+      title: 'Temporal Threshold',
+      initialGrid: grid,
+      targets: const [
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(0, 2),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(2, 0),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(2, 4),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(4, 2),
+        ),
+      ],
       optimalMoves: 8,
       hasMemoryEcho: true,
     );
@@ -776,39 +768,40 @@ class LevelDefinitions {
   // LEVEL 21: The Lattice
   static PuzzleLevel _buildLevel21() {
     final grid = _createEmptyGrid();
-    grid[1][0] = PieceType.roseSquare;
-    grid[0][1] = PieceType.emeraldHexagon;
-
+    grid[2][2] = PieceType.emeraldHexagon;
+    grid[2][4] = PieceType.amberDiamond;
+    grid[4][4] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 21,
       title: 'The Lattice',
-      hint: 'Diagonal coordinates wrap around perpendicular tracks.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(1, 3),
+          position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(3, 1),
+          position: BoardPosition(2, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(3, 2),
         ),
       ],
-      optimalMoves: 4,
+      optimalMoves: 6,
     );
   }
 
   // LEVEL 22: Ring of Saturn
   static PuzzleLevel _buildLevel22() {
     final grid = _createEmptyGrid();
-    grid[4][2] = PieceType.cyanCircle;
+    grid[0][3] = PieceType.cyanCircle;
+    grid[0][4] = PieceType.violetTriangle;
     grid[2][2] = PieceType.amberDiamond;
-    grid[2][1] = PieceType.violetTriangle;
-
     return PuzzleLevel(
       id: 22,
       title: 'Ring of Saturn',
-      hint: 'Send outer orbital satellites along perimeter boundaries.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -817,28 +810,27 @@ class LevelDefinitions {
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 0),
+          position: BoardPosition(2, 4),
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 3,
+      optimalMoves: 6,
     );
   }
 
   // LEVEL 23: Symmetry Break
   static PuzzleLevel _buildLevel23() {
     final grid = _createEmptyGrid();
-    grid[4][1] = PieceType.roseSquare;
-    grid[1][0] = PieceType.emeraldHexagon;
-    grid[0][2] = PieceType.cyanCircle;
-
+    grid[0][0] = PieceType.roseSquare;
+    grid[1][2] = PieceType.cyanCircle;
+    grid[1][3] = PieceType.emeraldHexagon;
+    grid[1][4] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 23,
       title: 'Symmetry Break',
-      hint: 'Break the mirrored layout with an asymmetrical column shift.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -851,35 +843,47 @@ class LevelDefinitions {
         ),
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(3, 2),
+          position: BoardPosition(3, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 7,
     );
   }
 
   // LEVEL 24: Toroidal Bypass
   static PuzzleLevel _buildLevel24() {
     final grid = _createEmptyGrid();
-    grid[2][3] = PieceType.amberDiamond;
-    grid[1][2] = PieceType.violetTriangle;
-
+    grid[1][3] = PieceType.cyanCircle;
+    grid[2][0] = PieceType.amberDiamond;
+    grid[2][1] = PieceType.roseSquare;
+    grid[3][0] = PieceType.violetTriangle;
     return PuzzleLevel(
       id: 24,
       title: 'Toroidal Bypass',
-      hint: 'Take the wrapping shortcut from bottom to top and right to left.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(0, 0),
+          position: BoardPosition(0, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(4, 4),
+          position: BoardPosition(2, 0),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(2, 4),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 7,
     );
   }
 
@@ -921,30 +925,33 @@ class LevelDefinitions {
   // LEVEL 26: Echo Grid
   static PuzzleLevel _buildLevel26() {
     final grid = _createEmptyGrid();
-    grid[0][1] = PieceType.cyanCircle;
-    grid[4][2] = PieceType.amberDiamond;
-    grid[1][3] = PieceType.violetTriangle;
-
+    grid[1][1] = PieceType.roseSquare;
+    grid[2][0] = PieceType.cyanCircle;
+    grid[3][3] = PieceType.emeraldHexagon;
+    grid[4][3] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 26,
       title: 'Echo Grid',
-      hint: 'Weave three pieces into the center row with Memory Echo.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 1),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(1, 3),
         ),
         PuzzleTarget(
-          pieceType: PieceType.violetTriangle,
-          position: BoardPosition(2, 3),
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(3, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 5,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -952,30 +959,33 @@ class LevelDefinitions {
   // LEVEL 27: Diagonal Drift
   static PuzzleLevel _buildLevel27() {
     final grid = _createEmptyGrid();
-    grid[0][3] = PieceType.roseSquare;
-    grid[4][2] = PieceType.emeraldHexagon;
     grid[1][4] = PieceType.amberDiamond;
-
+    grid[2][3] = PieceType.roseSquare;
+    grid[3][0] = PieceType.emeraldHexagon;
+    grid[3][3] = PieceType.cyanCircle;
     return PuzzleLevel(
       id: 27,
       title: 'Diagonal Drift',
-      hint: 'Drive diagonal anchors into the main geometric axis.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(0, 0),
+          position: BoardPosition(0, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(2, 0),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(4, 4),
+          position: BoardPosition(2, 4),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.cyanCircle,
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 7,
     );
   }
 
@@ -1013,20 +1023,18 @@ class LevelDefinitions {
   // LEVEL 29: Harmonic Axis
   static PuzzleLevel _buildLevel29() {
     final grid = _createEmptyGrid();
-    grid[0][0] = PieceType.cyanCircle;
-    grid[4][1] = PieceType.amberDiamond;
-    grid[1][3] = PieceType.roseSquare;
-    grid[3][4] = PieceType.emeraldHexagon;
-
+    grid[1][3] = PieceType.cyanCircle;
+    grid[2][0] = PieceType.emeraldHexagon;
+    grid[3][2] = PieceType.amberDiamond;
+    grid[3][3] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 29,
       title: 'Harmonic Axis',
-      hint: 'Dock four pieces into row 2 leaving the center core open.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 0),
+          position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
@@ -1038,10 +1046,10 @@ class LevelDefinitions {
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(3, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 7,
     );
   }
 
@@ -1188,18 +1196,17 @@ class LevelDefinitions {
   // LEVEL 34: The Carousel
   static PuzzleLevel _buildLevel34() {
     final grid = _createEmptyGrid();
-    grid[1][0] = PieceType.roseSquare;
-    grid[4][3] = PieceType.amberDiamond;
-    grid[3][4] = PieceType.violetTriangle;
-
+    grid[1][2] = PieceType.cyanCircle;
+    grid[2][2] = PieceType.roseSquare;
+    grid[3][1] = PieceType.amberDiamond;
+    grid[3][3] = PieceType.violetTriangle;
     return PuzzleLevel(
       id: 34,
       title: 'The Carousel',
-      hint: 'Rotate pieces around the perimeter before Echo lock.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
-          pieceType: PieceType.roseSquare,
+          pieceType: PieceType.cyanCircle,
           position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
@@ -1207,11 +1214,15 @@ class LevelDefinitions {
           position: BoardPosition(2, 3),
         ),
         PuzzleTarget(
-          pieceType: PieceType.violetTriangle,
+          pieceType: PieceType.roseSquare,
           position: BoardPosition(3, 2),
         ),
+        PuzzleTarget(
+          pieceType: PieceType.violetTriangle,
+          position: BoardPosition(2, 1),
+        ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1249,30 +1260,33 @@ class LevelDefinitions {
   // LEVEL 36: Resonator
   static PuzzleLevel _buildLevel36() {
     final grid = _createEmptyGrid();
-    grid[0][0] = PieceType.cyanCircle;
-    grid[1][4] = PieceType.amberDiamond;
-    grid[4][4] = PieceType.roseSquare;
-
+    grid[0][4] = PieceType.emeraldHexagon;
+    grid[1][1] = PieceType.cyanCircle;
+    grid[1][3] = PieceType.roseSquare;
+    grid[3][4] = PieceType.amberDiamond;
     return PuzzleLevel(
       id: 36,
       title: 'Resonator',
-      hint: 'Resonate pulse patterns across the outer borders.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(0, 2),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(1, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(4, 2),
+          position: BoardPosition(3, 1),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 5,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1351,30 +1365,33 @@ class LevelDefinitions {
   // LEVEL 39: Flux Capacitor
   static PuzzleLevel _buildLevel39() {
     final grid = _createEmptyGrid();
-    grid[4][2] = PieceType.cyanCircle;
-    grid[3][4] = PieceType.amberDiamond;
-    grid[0][3] = PieceType.violetTriangle;
-
+    grid[0][0] = PieceType.emeraldHexagon;
+    grid[2][2] = PieceType.roseSquare;
+    grid[4][2] = PieceType.amberDiamond;
+    grid[4][3] = PieceType.cyanCircle;
     return PuzzleLevel(
       id: 39,
       title: 'Flux Capacitor',
-      hint: 'Charge the 3-point temporal nexus with Memory Echo.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(0, 2),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(2, 0),
+        ),
+        PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(1, 2),
+          position: BoardPosition(2, 4),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(3, 1),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.violetTriangle,
-          position: BoardPosition(3, 3),
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 8,
       hasMemoryEcho: true,
     );
   }
@@ -1382,32 +1399,30 @@ class LevelDefinitions {
   // LEVEL 40: The Engine (Chapter 4 Capstone)
   static PuzzleLevel _buildLevel40() {
     final grid = _createEmptyGrid();
-    grid[0][1] = PieceType.cyanCircle;
-    grid[1][4] = PieceType.amberDiamond;
-    grid[3][0] = PieceType.roseSquare;
-    grid[4][3] = PieceType.emeraldHexagon;
-
+    grid[1][0] = PieceType.roseSquare;
+    grid[1][2] = PieceType.emeraldHexagon;
+    grid[1][3] = PieceType.amberDiamond;
+    grid[3][1] = PieceType.cyanCircle;
     return PuzzleLevel(
       id: 40,
       title: 'The Engine',
-      hint: 'The Chapter 4 climax: ignite the core combustion cycle.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(2, 1),
+          position: BoardPosition(1, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(1, 2),
+          position: BoardPosition(1, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(3, 2),
+          position: BoardPosition(3, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(2, 3),
+          position: BoardPosition(3, 3),
         ),
       ],
       optimalMoves: 8,
@@ -1488,15 +1503,13 @@ class LevelDefinitions {
   // LEVEL 43: The Monolith
   static PuzzleLevel _buildLevel43() {
     final grid = _createEmptyGrid();
-    grid[1][0] = PieceType.cyanCircle;
-    grid[2][4] = PieceType.roseSquare;
-    grid[3][1] = PieceType.emeraldHexagon;
-    grid[4][3] = PieceType.violetTriangle;
-
+    grid[0][0] = PieceType.emeraldHexagon;
+    grid[2][2] = PieceType.amberDiamond;
+    grid[2][3] = PieceType.roseSquare;
+    grid[3][0] = PieceType.cyanCircle;
     return PuzzleLevel(
       id: 43,
       title: 'The Monolith',
-      hint: 'Stack four geometric tiers into the vertical monolith pillar.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -1504,19 +1517,19 @@ class LevelDefinitions {
           position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(2, 1),
+        ),
+        PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 2),
+          position: BoardPosition(2, 3),
         ),
         PuzzleTarget(
           pieceType: PieceType.emeraldHexagon,
           position: BoardPosition(3, 2),
         ),
-        PuzzleTarget(
-          pieceType: PieceType.violetTriangle,
-          position: BoardPosition(4, 2),
-        ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 8,
     );
   }
 
@@ -1559,30 +1572,33 @@ class LevelDefinitions {
   // LEVEL 45: Labyrinth of Time
   static PuzzleLevel _buildLevel45() {
     final grid = _createEmptyGrid();
-    grid[4][1] = PieceType.amberDiamond;
-    grid[2][0] = PieceType.roseSquare;
-    grid[0][1] = PieceType.violetTriangle;
-
+    grid[0][2] = PieceType.roseSquare;
+    grid[0][4] = PieceType.amberDiamond;
+    grid[1][4] = PieceType.emeraldHexagon;
+    grid[2][2] = PieceType.violetTriangle;
     return PuzzleLevel(
       id: 45,
       title: 'Labyrinth of Time',
-      hint: 'Thread the winding corridor between past and future.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
-          pieceType: PieceType.amberDiamond,
-          position: BoardPosition(1, 1),
+          pieceType: PieceType.roseSquare,
+          position: BoardPosition(0, 2),
         ),
         PuzzleTarget(
-          pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 3),
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(2, 0),
         ),
         PuzzleTarget(
           pieceType: PieceType.violetTriangle,
-          position: BoardPosition(3, 1),
+          position: BoardPosition(2, 4),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.amberDiamond,
+          position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 8,
       hasMemoryEcho: true,
     );
   }
@@ -1732,16 +1748,14 @@ class LevelDefinitions {
   // LEVEL 50: Shift Master (The Ultimate Climax Puzzle)
   static PuzzleLevel _buildLevel50() {
     final grid = _createEmptyGrid();
-    grid[2][4] = PieceType.violetTriangle;
-    grid[3][2] = PieceType.cyanCircle;
-    grid[1][2] = PieceType.emeraldHexagon;
-    grid[2][3] = PieceType.amberDiamond;
-    grid[2][1] = PieceType.roseSquare;
-
+    grid[0][0] = PieceType.emeraldHexagon;
+    grid[1][0] = PieceType.amberDiamond;
+    grid[1][2] = PieceType.cyanCircle;
+    grid[3][3] = PieceType.violetTriangle;
+    grid[3][4] = PieceType.roseSquare;
     return PuzzleLevel(
       id: 50,
       title: 'Shift Master',
-      hint: 'The Climax: Crown the Violet Triangle at the center of the cosmos.',
       initialGrid: grid,
       targets: const [
         PuzzleTarget(
@@ -1750,22 +1764,22 @@ class LevelDefinitions {
         ),
         PuzzleTarget(
           pieceType: PieceType.cyanCircle,
-          position: BoardPosition(0, 2),
-        ),
-        PuzzleTarget(
-          pieceType: PieceType.emeraldHexagon,
-          position: BoardPosition(4, 2),
+          position: BoardPosition(1, 2),
         ),
         PuzzleTarget(
           pieceType: PieceType.amberDiamond,
-          position: BoardPosition(2, 0),
+          position: BoardPosition(2, 1),
         ),
         PuzzleTarget(
           pieceType: PieceType.roseSquare,
-          position: BoardPosition(2, 4),
+          position: BoardPosition(2, 3),
+        ),
+        PuzzleTarget(
+          pieceType: PieceType.emeraldHexagon,
+          position: BoardPosition(3, 2),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 9,
       hasMemoryEcho: true,
     );
   }

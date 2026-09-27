@@ -53,13 +53,15 @@ class _GameScreenState extends State<GameScreen> {
 
   int _currentLevelRestartCount = 0;
   int _currentLevelUndoCount = 0;
+  int _failedEchoAttempts = 0;
   bool _usedHintOnCurrentLevel = false;
 
   bool get _isStruggling {
     final level = LevelDefinitions.getLevel(_currentLevelId);
     return _currentLevelRestartCount >= 2 ||
         _currentLevelUndoCount >= 3 ||
-        (_engine.moveCount >= level.optimalMoves + 4);
+        _failedEchoAttempts >= 2 ||
+        (_engine.moveCount >= level.optimalMoves + 3);
   }
 
   void _dismissTutorial() {
@@ -145,6 +147,7 @@ class _GameScreenState extends State<GameScreen> {
     _isTutorialDismissed = false;
     _currentLevelRestartCount = 0;
     _currentLevelUndoCount = 0;
+    _failedEchoAttempts = 0;
     _usedHintOnCurrentLevel = false;
     if (levelId > 2 && !(_progress?.isTutorialCompleted ?? false)) {
       _progress?.setTutorialCompleted();
@@ -339,7 +342,12 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
     _game.triggerEchoReplay(() {
-      if (mounted) setState(() {});
+      if (mounted) {
+        if (!_engine.isSolved) {
+          _failedEchoAttempts++;
+        }
+        setState(() {});
+      }
     });
     setState(() {});
   }
