@@ -12,7 +12,9 @@ class GameControls extends StatelessWidget {
   final int echoCount;
   final bool isBoardBusy;
   final bool canUndo;
+  final bool isUndoLocked;
   final VoidCallback? onUndo;
+  final VoidCallback? onUndoDisabled;
   final VoidCallback? onEchoAction;
   final VoidCallback? onDiscardEcho;
   final VoidCallback? onHint;
@@ -31,7 +33,9 @@ class GameControls extends StatelessWidget {
     this.echoCount = 0,
     this.isBoardBusy = false,
     this.canUndo = false,
+    this.isUndoLocked = false,
     this.onUndo,
+    this.onUndoDisabled,
     this.onEchoAction,
     this.onDiscardEcho,
     this.onHint,
@@ -66,9 +70,11 @@ class GameControls extends StatelessWidget {
               key: const ValueKey('undo_button'),
               onPressed: (!isReplaying && !isBoardBusy && canUndo) ? onUndo : null,
               icon: const Icon(Icons.undo_rounded, size: 20),
-              color: const Color(0xFF38BDF8),
+              color: canUndo ? const Color(0xFF38BDF8) : const Color(0xFF334155),
               disabledColor: const Color(0xFF334155),
-              tooltip: 'Undo Shift',
+              tooltip: isUndoLocked
+                  ? 'Undo locked (available before optimal moves)'
+                  : 'Undo Shift',
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
             const SizedBox(width: 6),

@@ -98,6 +98,53 @@ abstract class AnalyticsService {
     required int optimalMoves,
     required int stars,
   });
+
+  // Task 17 Move Budget & Extra Moves Telemetry
+  void logMoveLimitReached({
+    required int levelId,
+    required int chapterId,
+    required int optimalMoves,
+    required int normalMoveLimit,
+    required int movesUsed,
+    required bool isEchoLevel,
+    required bool isExtendedLimit,
+  });
+  void logMoveLimitReplaySelected({
+    required int levelId,
+    required int movesUsed,
+  });
+  void logMoveLimitExtraMovesRequested({
+    required int levelId,
+    required int movesUsed,
+  });
+  void logMoveLimitAdStarted({
+    required int levelId,
+    required String placement,
+  });
+  void logMoveLimitAdRewarded({
+    required int levelId,
+    required String placement,
+  });
+  void logMoveLimitAdFailed({
+    required int levelId,
+    required String placement,
+    required String reason,
+  });
+  void logMoveLimitExtraMovesGranted({
+    required int levelId,
+    required int extraMovesGranted,
+    required int newMoveLimit,
+  });
+  void logMoveLimitFinalAttemptExhausted({
+    required int levelId,
+    required int movesUsed,
+  });
+  void logLevelCompletedAfterExtraMoves({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  });
 }
 
 /// Production default debug logger / no-op analytics service.
@@ -406,6 +453,123 @@ class DebugAnalyticsService implements AnalyticsService {
       'moves': moves,
       'optimal_moves': optimalMoves,
       'delta': moves - optimalMoves,
+      'stars': stars,
+    });
+  }
+
+  @override
+  void logMoveLimitReached({
+    required int levelId,
+    required int chapterId,
+    required int optimalMoves,
+    required int normalMoveLimit,
+    required int movesUsed,
+    required bool isEchoLevel,
+    required bool isExtendedLimit,
+  }) {
+    _log('move_limit_reached', {
+      'level_id': levelId,
+      'chapter_id': chapterId,
+      'optimal_moves': optimalMoves,
+      'normal_move_limit': normalMoveLimit,
+      'moves_used': movesUsed,
+      'is_echo_level': isEchoLevel,
+      'is_extended_limit': isExtendedLimit,
+    });
+  }
+
+  @override
+  void logMoveLimitReplaySelected({
+    required int levelId,
+    required int movesUsed,
+  }) {
+    _log('move_limit_replay_selected', {
+      'level_id': levelId,
+      'moves_used': movesUsed,
+    });
+  }
+
+  @override
+  void logMoveLimitExtraMovesRequested({
+    required int levelId,
+    required int movesUsed,
+  }) {
+    _log('move_limit_extra_moves_requested', {
+      'level_id': levelId,
+      'moves_used': movesUsed,
+    });
+  }
+
+  @override
+  void logMoveLimitAdStarted({
+    required int levelId,
+    required String placement,
+  }) {
+    _log('move_limit_ad_started', {
+      'level_id': levelId,
+      'placement': placement,
+    });
+  }
+
+  @override
+  void logMoveLimitAdRewarded({
+    required int levelId,
+    required String placement,
+  }) {
+    _log('move_limit_ad_rewarded', {
+      'level_id': levelId,
+      'placement': placement,
+    });
+  }
+
+  @override
+  void logMoveLimitAdFailed({
+    required int levelId,
+    required String placement,
+    required String reason,
+  }) {
+    _log('move_limit_ad_failed', {
+      'level_id': levelId,
+      'placement': placement,
+      'reason': reason,
+    });
+  }
+
+  @override
+  void logMoveLimitExtraMovesGranted({
+    required int levelId,
+    required int extraMovesGranted,
+    required int newMoveLimit,
+  }) {
+    _log('move_limit_extra_moves_granted', {
+      'level_id': levelId,
+      'extra_moves_granted': extraMovesGranted,
+      'new_move_limit': newMoveLimit,
+    });
+  }
+
+  @override
+  void logMoveLimitFinalAttemptExhausted({
+    required int levelId,
+    required int movesUsed,
+  }) {
+    _log('move_limit_final_attempt_exhausted', {
+      'level_id': levelId,
+      'moves_used': movesUsed,
+    });
+  }
+
+  @override
+  void logLevelCompletedAfterExtraMoves({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  }) {
+    _log('level_completed_after_extra_moves', {
+      'level_id': levelId,
+      'moves': moves,
+      'optimal_moves': optimalMoves,
       'stars': stars,
     });
   }

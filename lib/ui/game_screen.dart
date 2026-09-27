@@ -15,6 +15,7 @@ import 'level_select_dialog.dart';
 import '../core/connectivity/connectivity_service.dart';
 import 'hint_unavailable_dialog.dart';
 import 'internet_needed_dialog.dart';
+import 'move_limit_dialog.dart';
 import 'optimal_drift_nudge_dialog.dart';
 import 'win_dialog.dart';
 import 'widgets/tutorial_overlay.dart';
@@ -66,6 +67,26 @@ class _GameScreenState extends State<GameScreen> {
   bool _usedHintOnCurrentLevel = false;
   bool _optimalDriftNudgeShown = false;
   bool _optimalDriftDetected = false;
+
+  bool _extraMoveExtensionUsed = false;
+  int _extraMovesGranted = 0;
+  bool _isMoveLimitReached = false;
+  bool _isMoveLimitDialogShowing = false;
+  bool _undoLockExplanationShown = false;
+
+  int get _normalMoveLimit {
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    return level.optimalMoves > 0 ? level.optimalMoves + 3 : 999;
+  }
+
+  int get _currentMoveLimit => _normalMoveLimit + _extraMovesGranted;
+
+  bool get _canUndo =>
+      !_game.isAnimating &&
+      !_game.isEchoReplaying &&
+      !_isWinDialogShowing &&
+      !_isMoveLimitReached &&
+      _engine.canUndo;
 
   bool get _isStruggling {
     final level = LevelDefinitions.getLevel(_currentLevelId);
@@ -121,6 +142,11 @@ class _GameScreenState extends State<GameScreen> {
     _usedHintOnCurrentLevel = false;
     _optimalDriftNudgeShown = false;
     _optimalDriftDetected = false;
+    _extraMoveExtensionUsed = false;
+    _extraMovesGranted = 0;
+    _isMoveLimitReached = false;
+    _isMoveLimitDialogShowing = false;
+    _undoLockExplanationShown = false;
     _isModalShowing = false;
     final level = LevelDefinitions.getLevel(_currentLevelId);
     _engine = PuzzleEngine(level);
@@ -146,7 +172,11 @@ class _GameScreenState extends State<GameScreen> {
         if (justSeated) {
           _feedback?.playPieceSeated();
         }
+        if (_engine.isSolved) {
+          return;
+        }
         _checkOptimalDriftNudge();
+        _checkMoveLimit();
       },
     );
   }
@@ -167,6 +197,11 @@ class _GameScreenState extends State<GameScreen> {
     _usedHintOnCurrentLevel = false;
     _optimalDriftNudgeShown = false;
     _optimalDriftDetected = false;
+    _extraMoveExtensionUsed = false;
+    _extraMovesGranted = 0;
+    _isMoveLimitReached = false;
+    _isMoveLimitDialogShowing = false;
+    _undoLockExplanationShown = false;
     _isModalShowing = false;
     if (levelId > 2 && !(_progress?.isTutorialCompleted ?? false)) {
       _progress?.setTutorialCompleted();
@@ -192,6 +227,11 @@ class _GameScreenState extends State<GameScreen> {
     _optimalDriftDetected = false;
     _failedEchoAttempts = 0;
     _usedHintOnCurrentLevel = false;
+    _extraMoveExtensionUsed = false;
+    _extraMovesGranted = 0;
+    _isMoveLimitReached = false;
+    _isMoveLimitDialogShowing = false;
+    _undoLockExplanationShown = false;
     _isModalShowing = false;
     widget.analytics.logLevelRestarted(_currentLevelId);
     setState(() {
@@ -201,10 +241,8 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _handleUndo() {
-    if (_game.isAnimating ||
-        _game.isEchoReplaying ||
-        !_engine.canUndo ||
-        _isWinDialogShowing) {
+    if (!_canUndo) {
+      _handleUndoDisabled();
       return;
     }
     _currentLevelUndoCount++;
@@ -214,6 +252,21 @@ class _GameScreenState extends State<GameScreen> {
       _feedback?.playUndo();
       _game.updateEngine(_engine);
     });
+  }
+
+  void _handleUndoDisabled() {
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    if ((_engine.isUndoLocked || _engine.moveCount >= level.optimalMoves) &&
+        !_undoLockExplanationShown) {
+      _undoLockExplanationShown = true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Undo is available before reaching the optimal move count.'),
+          backgroundColor: Color(0xFF1E293B),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _toggleSound() {
@@ -290,6 +343,15 @@ class _GameScreenState extends State<GameScreen> {
 
       if (_optimalDriftDetected || _engine.moveCount > level.optimalMoves) {
         widget.analytics.logLevelCompletedAfterOptimalDrift(
+          levelId: _currentLevelId,
+          moves: _engine.moveCount,
+          optimalMoves: level.optimalMoves,
+          stars: stars,
+        );
+      }
+
+      if (_extraMoveExtensionUsed) {
+        widget.analytics.logLevelCompletedAfterExtraMoves(
           levelId: _currentLevelId,
           moves: _engine.moveCount,
           optimalMoves: level.optimalMoves,
@@ -393,6 +455,12 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onPanStart(DragStartDetails details) {
+    if (_isMoveLimitReached) {
+      if (!_isMoveLimitDialogShowing && !_isModalShowing) {
+        _showMoveLimitDialog();
+      }
+      return;
+    }
     if (_showTutorialOverlay) {
       _dismissTutorial();
     }
@@ -401,11 +469,12 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
+    if (_isMoveLimitReached) return;
     _panCurrent = details.localPosition;
   }
 
   void _onPanEnd(DragEndDetails details) {
-    if (_game.isAnimating || _game.isEchoReplaying || _isWinDialogShowing) return;
+    if (_isMoveLimitReached || _game.isAnimating || _game.isEchoReplaying || _isWinDialogShowing) return;
 
     final dx = _panCurrent.dx - _panStart.dx;
     final dy = _panCurrent.dy - _panStart.dy;
@@ -433,6 +502,8 @@ class _GameScreenState extends State<GameScreen> {
         _game.isEchoReplaying ||
         _engine.isSolved ||
         _isWinDialogShowing ||
+        _isMoveLimitReached ||
+        _isMoveLimitDialogShowing ||
         _isModalShowing ||
         _isRequestingAd) {
       return;
@@ -919,94 +990,386 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _checkMoveLimit() {
+    if (_engine.isSolved || _isWinDialogShowing) return;
+    if (_isMoveLimitDialogShowing || _isModalShowing) return;
+    if (_game.isAnimating || _game.isEchoReplaying) return;
+
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    if (level.optimalMoves <= 0) return;
+
+    if (_engine.moveCount >= _currentMoveLimit) {
+      _isMoveLimitReached = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_engine.isSolved || _isWinDialogShowing) return;
+        _showMoveLimitDialog();
+      });
+    }
+  }
+
+  void _showMoveLimitDialog() {
+    if (_isMoveLimitDialogShowing || _isModalShowing || _isWinDialogShowing) return;
+    _isMoveLimitDialogShowing = true;
+    _isModalShowing = true;
+
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    final canExtend = !_extraMoveExtensionUsed;
+
+    if (!canExtend) {
+      widget.analytics.logMoveLimitFinalAttemptExhausted(
+        levelId: _currentLevelId,
+        movesUsed: _engine.moveCount,
+      );
+    } else {
+      widget.analytics.logMoveLimitReached(
+        levelId: _currentLevelId,
+        chapterId: level.chapter,
+        optimalMoves: level.optimalMoves,
+        normalMoveLimit: _normalMoveLimit,
+        movesUsed: _engine.moveCount,
+        isEchoLevel: level.hasMemoryEcho,
+        isExtendedLimit: _extraMovesGranted > 0,
+      );
+    }
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (ctx) => MoveLimitDialog(
+        levelId: _currentLevelId,
+        movesUsed: _engine.moveCount,
+        optimalMoves: level.optimalMoves,
+        canExtend: canExtend,
+        onReplay: () {
+          Navigator.of(ctx).pop();
+          _isMoveLimitDialogShowing = false;
+          _isModalShowing = false;
+          widget.analytics.logMoveLimitReplaySelected(
+            levelId: _currentLevelId,
+            movesUsed: _engine.moveCount,
+          );
+          _restartCurrentLevel();
+        },
+        onWatchAd: () {
+          Navigator.of(ctx).pop();
+          _isMoveLimitDialogShowing = false;
+          _isModalShowing = false;
+          widget.analytics.logMoveLimitExtraMovesRequested(
+            levelId: _currentLevelId,
+            movesUsed: _engine.moveCount,
+          );
+          _executeRewardedAdForExtraMoves();
+        },
+      ),
+    ).then((_) {
+      _isMoveLimitDialogShowing = false;
+      _isModalShowing = false;
+    });
+  }
+
+  void _executeRewardedAdForExtraMoves() async {
+    if (_isRequestingAd) return;
+    _isRequestingAd = true;
+
+    final placement = 'extra_moves_level_$_currentLevelId';
+
+    // 1. Connectivity check
+    final isOnline = await widget.connectivityService.hasInternetConnection();
+    if (!mounted) {
+      _isRequestingAd = false;
+      return;
+    }
+
+    if (!isOnline) {
+      _isRequestingAd = false;
+      widget.analytics.logMoveLimitAdFailed(
+        levelId: _currentLevelId,
+        placement: placement,
+        reason: 'network_unavailable',
+      );
+      _showInternetNeededDialogForExtraMoves();
+      return;
+    }
+
+    // 2. Check if ad is ready, or wait briefly if loading
+    if (!widget.adService.isRewardedAdReady) {
+      await widget.adService.preloadRewardedAd();
+      for (int i = 0; i < 4 && !widget.adService.isRewardedAdReady && mounted; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      }
+    }
+
+    if (!mounted) {
+      _isRequestingAd = false;
+      return;
+    }
+
+    if (!widget.adService.isRewardedAdReady) {
+      _isRequestingAd = false;
+      widget.analytics.logMoveLimitAdFailed(
+        levelId: _currentLevelId,
+        placement: placement,
+        reason: 'ad_unavailable',
+      );
+      _showAdUnavailableDialogForExtraMoves();
+      return;
+    }
+
+    // 3. Ad is ready - show it
+    widget.analytics.logRewardedAdRequested(placement);
+    widget.analytics.logMoveLimitAdStarted(
+      levelId: _currentLevelId,
+      placement: placement,
+    );
+
+    bool rewardEarned = false;
+    bool rewardDispatched = false;
+
+    try {
+      await widget.adService.showRewardedAd(
+        placement: placement,
+        onRewardEarned: () {
+          if (rewardDispatched) return;
+          rewardDispatched = true;
+          rewardEarned = true;
+          _grantExtraMoves(placement: placement);
+        },
+      );
+
+      _isRequestingAd = false;
+      if (!rewardEarned && mounted) {
+        widget.analytics.logMoveLimitAdFailed(
+          levelId: _currentLevelId,
+          placement: placement,
+          reason: 'ad_not_completed',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ad was not completed. Replay level or try again.'),
+            backgroundColor: Color(0xFF1E293B),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        _showMoveLimitDialog();
+      }
+    } catch (e) {
+      _isRequestingAd = false;
+      widget.analytics.logMoveLimitAdFailed(
+        levelId: _currentLevelId,
+        placement: placement,
+        reason: 'ad_error',
+      );
+      if (mounted) {
+        _showAdUnavailableDialogForExtraMoves();
+      }
+    }
+  }
+
+  void _grantExtraMoves({required String placement}) {
+    widget.analytics.logRewardedAdCompleted(placement);
+    widget.analytics.logMoveLimitAdRewarded(
+      levelId: _currentLevelId,
+      placement: placement,
+    );
+
+    setState(() {
+      _extraMoveExtensionUsed = true;
+      _extraMovesGranted = 5;
+      _isMoveLimitReached = false;
+    });
+
+    widget.analytics.logMoveLimitExtraMovesGranted(
+      levelId: _currentLevelId,
+      extraMovesGranted: 5,
+      newMoveLimit: _currentMoveLimit,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          '+5 extra moves unlocked! Keep solving.',
+          style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFFEF3C7)),
+        ),
+        backgroundColor: Color(0xFF78350F),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showInternetNeededDialogForExtraMoves() {
+    if (_isModalShowing) return;
+    _isModalShowing = true;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => InternetNeededDialog(
+        title: 'INTERNET CONNECTION NEEDED',
+        body: 'A rewarded ad is required to unlock extra moves.\nTurn on Wi-Fi or mobile data, then try again.',
+        onTryAgain: () async {
+          final isConnected = await widget.connectivityService.hasInternetConnection();
+          if (isConnected) {
+            if (ctx.mounted) {
+              Navigator.of(ctx).pop();
+            }
+            if (mounted) {
+              _executeRewardedAdForExtraMoves();
+            }
+            return true;
+          } else {
+            return false;
+          }
+        },
+        onNotNow: () {
+          Navigator.of(ctx).pop();
+          if (mounted) {
+            _showMoveLimitDialog();
+          }
+        },
+      ),
+    ).then((_) {
+      _isModalShowing = false;
+    });
+  }
+
+  void _showAdUnavailableDialogForExtraMoves() {
+    if (_isModalShowing) return;
+    _isModalShowing = true;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => HintUnavailableDialog(
+        title: 'EXTRA MOVES TEMPORARILY UNAVAILABLE',
+        body: 'The rewarded ad isn’t available right now. Please try again.',
+        onTryAgain: () async {
+          await widget.adService.preloadRewardedAd();
+          for (int i = 0; i < 4 && !widget.adService.isRewardedAdReady && mounted; i++) {
+            await Future<void>.delayed(const Duration(milliseconds: 300));
+          }
+          if (widget.adService.isRewardedAdReady) {
+            if (ctx.mounted) {
+              Navigator.of(ctx).pop();
+            }
+            if (mounted) {
+              _executeRewardedAdForExtraMoves();
+            }
+            return true;
+          } else {
+            return false;
+          }
+        },
+        onNotNow: () {
+          Navigator.of(ctx).pop();
+          if (mounted) {
+            _showMoveLimitDialog();
+          }
+        },
+      ),
+    ).then((_) {
+      _isModalShowing = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final level = LevelDefinitions.getLevel(_currentLevelId);
     final isSoundOn = _progress?.isSoundEnabled ?? true;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF090D16),
-      body: SafeArea(
-        child: Column(
-          children: [
-            GameHeader(
-              levelId: _currentLevelId,
-              levelTitle: level.title,
-              moveCount: _engine.moveCount,
-              optimalMoves: level.optimalMoves,
-              isSoundEnabled: isSoundOn,
-              onToggleSound: _toggleSound,
-              onOpenLevelSelect: _openLevelSelect,
-            ),
-            if (level.hint != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                child: Text(
-                  level.hint!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
+    return PopScope(
+      canPop: !_isMoveLimitReached,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isMoveLimitReached) {
+          _showMoveLimitDialog();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF090D16),
+        body: SafeArea(
+          child: Column(
+            children: [
+              GameHeader(
+                levelId: _currentLevelId,
+                levelTitle: level.title,
+                moveCount: _engine.moveCount,
+                optimalMoves: level.optimalMoves,
+                moveLimit: _currentMoveLimit,
+                hasExtraMoves: _extraMovesGranted > 0,
+                isSoundEnabled: isSoundOn,
+                onToggleSound: _toggleSound,
+                onOpenLevelSelect: _openLevelSelect,
+              ),
+              if (level.hint != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                  child: Text(
+                    level.hint!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
-              ),
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onPanStart: _onPanStart,
-                      onPanUpdate: _onPanUpdate,
-                      onPanEnd: _onPanEnd,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          children: [
-                            GameWidget(game: _game),
-                            if (_showTutorialOverlay)
-                              TutorialOverlay(
-                                levelId: _currentLevelId,
-                                onDismiss: _dismissTutorial,
-                              ),
-                          ],
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: AspectRatio(
+                      aspectRatio: 1.0,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onPanStart: _onPanStart,
+                        onPanUpdate: _onPanUpdate,
+                        onPanEnd: _onPanEnd,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            children: [
+                              GameWidget(game: _game),
+                              if (_showTutorialOverlay)
+                                TutorialOverlay(
+                                  levelId: _currentLevelId,
+                                  onDismiss: _dismissTutorial,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            GameControls(
-              onRestart: _restartCurrentLevel,
-              onPreviousLevel: _currentLevelId > 1
-                  ? () => _switchLevel(_currentLevelId - 1)
-                  : null,
-              onNextLevel: _currentLevelId < LevelDefinitions.totalLevels
-                  ? () => _switchLevel(_currentLevelId + 1)
-                  : null,
-              hasPrevious: _currentLevelId > 1,
-              hasNext: _currentLevelId < LevelDefinitions.totalLevels,
-              showEchoButton: level.hasMemoryEcho,
-              echoStatus: _engine.echo.status,
-              echoCount: _engine.echo.length,
-              isBoardBusy: _game.isAnimating || _game.isEchoReplaying,
-              canUndo: _engine.canUndo &&
-                  !_game.isAnimating &&
-                  !_game.isEchoReplaying &&
-                  !_engine.isSolved,
-              onUndo: _handleUndo,
-              onEchoAction: _handleEchoAction,
-              onDiscardEcho: _discardEcho,
-              onHint: _handleRequestHint,
-              isHintActive: _game.activeHint != null,
-              isStruggling: _isStruggling,
-            ),
-            const SizedBox(height: 12),
-          ],
+              GameControls(
+                onRestart: _restartCurrentLevel,
+                onPreviousLevel: _currentLevelId > 1
+                    ? () => _switchLevel(_currentLevelId - 1)
+                    : null,
+                onNextLevel: _currentLevelId < LevelDefinitions.totalLevels
+                    ? () => _switchLevel(_currentLevelId + 1)
+                    : null,
+                hasPrevious: _currentLevelId > 1,
+                hasNext: _currentLevelId < LevelDefinitions.totalLevels,
+                showEchoButton: level.hasMemoryEcho,
+                echoStatus: _engine.echo.status,
+                echoCount: _engine.echo.length,
+                isBoardBusy: _game.isAnimating || _game.isEchoReplaying,
+                canUndo: _canUndo,
+                isUndoLocked: _engine.isUndoLocked || _engine.moveCount >= level.optimalMoves,
+                onUndo: _handleUndo,
+                onUndoDisabled: _handleUndoDisabled,
+                onEchoAction: _handleEchoAction,
+                onDiscardEcho: _discardEcho,
+                onHint: _handleRequestHint,
+                isHintActive: _game.activeHint != null,
+                isStruggling: _isStruggling,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );

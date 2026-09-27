@@ -6,6 +6,8 @@ class GameHeader extends StatelessWidget {
   final String? hint;
   final int moveCount;
   final int optimalMoves;
+  final int? moveLimit;
+  final bool hasExtraMoves;
   final int? bestMoves;
   final int stars;
   final bool isSoundEnabled;
@@ -19,6 +21,8 @@ class GameHeader extends StatelessWidget {
     this.hint,
     required this.moveCount,
     this.optimalMoves = 0,
+    this.moveLimit,
+    this.hasExtraMoves = false,
     this.bestMoves,
     this.stars = 0,
     this.isSoundEnabled = true,
@@ -28,6 +32,7 @@ class GameHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAtLimit = moveLimit != null && moveLimit! > 0 && moveCount >= moveLimit!;
     final isOverPar = optimalMoves > 0 && moveCount > optimalMoves;
 
     return Container(
@@ -138,38 +143,82 @@ class GameHeader extends StatelessWidget {
                       color: const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isOverPar
-                            ? const Color(0xFFFBBF24).withValues(alpha: 0.45)
-                            : const Color(0xFF334155),
+                        color: isAtLimit
+                            ? const Color(0xFFF87171).withValues(alpha: 0.6)
+                            : isOverPar
+                                ? const Color(0xFFFBBF24).withValues(alpha: 0.45)
+                                : const Color(0xFF334155),
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
-                          'Moves: ',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Moves: ',
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              '$moveCount',
+                              style: TextStyle(
+                                color: isAtLimit
+                                    ? const Color(0xFFF87171)
+                                    : isOverPar
+                                        ? const Color(0xFFFBBF24)
+                                        : Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (optimalMoves > 0) ...[
+                              Text(
+                                ' / $optimalMoves',
+                                style: TextStyle(
+                                  color: isAtLimit
+                                      ? const Color(0xFFF87171).withValues(alpha: 0.8)
+                                      : isOverPar
+                                          ? const Color(0xFFFBBF24).withValues(alpha: 0.70)
+                                          : const Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                            if (hasExtraMoves) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  '+5 bonus',
+                                  style: TextStyle(
+                                    color: Color(0xFFFBBF24),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        Text(
-                          '$moveCount',
-                          style: TextStyle(
-                            color: isOverPar ? const Color(0xFFFBBF24) : Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (optimalMoves > 0) ...[
+                        if (moveLimit != null && moveLimit! > 0) ...[
+                          const SizedBox(height: 1),
                           Text(
-                            ' / $optimalMoves',
+                            'Limit: $moveCount / $moveLimit',
                             style: TextStyle(
-                              color: isOverPar
-                                  ? const Color(0xFFFBBF24).withValues(alpha: 0.70)
-                                  : const Color(0xFF64748B),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              color: isAtLimit ? const Color(0xFFF87171) : const Color(0xFF64748B),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],

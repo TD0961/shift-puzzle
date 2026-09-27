@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 class HintUnavailableDialog extends StatefulWidget {
   final Future<bool> Function() onTryAgain;
   final VoidCallback onNotNow;
+  final String title;
+  final String body;
 
   const HintUnavailableDialog({
     super.key,
     required this.onTryAgain,
     required this.onNotNow,
+    this.title = 'HINT TEMPORARILY UNAVAILABLE',
+    this.body = 'The rewarded ad isn’t available right now. Please try again.',
   });
 
   @override
@@ -108,10 +112,10 @@ class _HintUnavailableDialogState extends State<HintUnavailableDialog> {
             const SizedBox(height: 12),
 
             // Title
-            const Text(
-              'HINT TEMPORARILY UNAVAILABLE',
+            Text(
+              widget.title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
@@ -121,10 +125,10 @@ class _HintUnavailableDialogState extends State<HintUnavailableDialog> {
             const SizedBox(height: 10),
 
             // Body
-            const Text(
-              'The rewarded ad isn’t available right now. Please try again.',
+            Text(
+              widget.body,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 13.5,
                 height: 1.45,

@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 class InternetNeededDialog extends StatefulWidget {
   final Future<bool> Function() onTryAgain;
   final VoidCallback onNotNow;
+  final String title;
+  final String body;
 
   const InternetNeededDialog({
     super.key,
     required this.onTryAgain,
     required this.onNotNow,
+    this.title = 'INTERNET CONNECTION NEEDED',
+    this.body = 'A rewarded ad is required to unlock this hint.\nTurn on Wi-Fi or mobile data, then try again.',
   });
 
   @override
@@ -108,10 +112,10 @@ class _InternetNeededDialogState extends State<InternetNeededDialog> {
             const SizedBox(height: 12),
 
             // Title
-            const Text(
-              'INTERNET CONNECTION NEEDED',
+            Text(
+              widget.title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
@@ -121,10 +125,10 @@ class _InternetNeededDialogState extends State<InternetNeededDialog> {
             const SizedBox(height: 10),
 
             // Body
-            const Text(
-              'A rewarded ad is required to unlock this hint.\nTurn on Wi-Fi or mobile data, then try again.',
+            Text(
+              widget.body,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 13.5,
                 height: 1.45,

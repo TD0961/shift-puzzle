@@ -14,6 +14,7 @@ class PuzzleEngine {
   late bool _isSolved;
   final MemoryEcho echo = MemoryEcho();
   final List<ShiftRecord> _history = [];
+  bool _undoLocked = false;
 
   PuzzleEngine(this.level) {
     reset();
@@ -24,8 +25,13 @@ class PuzzleEngine {
   int get moveCount => _moveCount;
   bool get isSolved => _isSolved;
   List<PuzzleTarget> get targets => level.targets;
-  bool get canUndo => _history.isNotEmpty && !_isSolved;
+  bool get canUndo =>
+      !_undoLocked &&
+      _history.isNotEmpty &&
+      !_isSolved &&
+      (level.optimalMoves <= 0 || _moveCount < level.optimalMoves);
   int get undoCount => _history.length;
+  bool get isUndoLocked => _undoLocked;
 
   void clearHistory() {
     _history.clear();
@@ -74,6 +80,9 @@ class PuzzleEngine {
       final record = ShiftRecord(isRow: true, index: rowIndex, direction: direction);
       _history.add(record);
       echo.record(record);
+      if (level.optimalMoves > 0 && _moveCount >= level.optimalMoves) {
+        _undoLocked = true;
+      }
     }
     _isSolved = checkSolved();
     return true;
@@ -105,6 +114,9 @@ class PuzzleEngine {
       final record = ShiftRecord(isRow: false, index: columnIndex, direction: direction);
       _history.add(record);
       echo.record(record);
+      if (level.optimalMoves > 0 && _moveCount >= level.optimalMoves) {
+        _undoLocked = true;
+      }
     }
     _isSolved = checkSolved();
     return true;
@@ -169,6 +181,7 @@ class PuzzleEngine {
       (r) => List<PieceType?>.from(level.initialGrid[r]),
     );
     _moveCount = 0;
+    _undoLocked = false;
     _history.clear();
     echo.clear();
     _isSolved = checkSolved();
