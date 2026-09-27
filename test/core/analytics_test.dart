@@ -48,6 +48,54 @@ void main() {
       expect(() => analytics.logHintUsed(5), returnsNormally);
       expect(() => analytics.logInterstitialRequested(12), returnsNormally);
       expect(() => analytics.logInterstitialShown(12), returnsNormally);
+      expect(
+        () => analytics.logOptimalDriftDetected(
+          levelId: 6,
+          chapterId: 1,
+          hasMemoryEcho: false,
+          moveCount: 6,
+          optimalMoves: 5,
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => analytics.logOptimalDriftNudgeShown(
+          levelId: 6,
+          chapterId: 1,
+          hasMemoryEcho: false,
+          moveCount: 6,
+          optimalMoves: 5,
+        ),
+        returnsNormally,
+      );
+      expect(() => analytics.logOptimalDriftKeepSolving(levelId: 6, moveCount: 6), returnsNormally);
+      expect(() => analytics.logOptimalDriftHintRequested(levelId: 6, moveCount: 6), returnsNormally);
+      expect(
+        () => analytics.logOptimalDriftAdStarted(levelId: 6, placement: 'optimal_drift_level_6'),
+        returnsNormally,
+      );
+      expect(
+        () => analytics.logOptimalDriftAdRewarded(levelId: 6, placement: 'optimal_drift_level_6'),
+        returnsNormally,
+      );
+      expect(
+        () => analytics.logOptimalDriftAdFailed(
+          levelId: 6,
+          placement: 'optimal_drift_level_6',
+          reason: 'timeout',
+        ),
+        returnsNormally,
+      );
+      expect(() => analytics.logOptimalDriftHintRevealed(levelId: 6, moveCount: 6), returnsNormally);
+      expect(
+        () => analytics.logLevelCompletedAfterOptimalDrift(
+          levelId: 6,
+          moves: 7,
+          optimalMoves: 5,
+          stars: 2,
+        ),
+        returnsNormally,
+      );
     });
 
     test('DebugAnalyticsService handles disabled logging cleanly', () {

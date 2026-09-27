@@ -11,6 +11,7 @@ class PuzzleLevel {
   final List<PuzzleTarget> targets;
   final int optimalMoves;
   final bool hasMemoryEcho;
+  final bool? enableOptimalDriftNudge;
 
   const PuzzleLevel({
     required this.id,
@@ -22,7 +23,13 @@ class PuzzleLevel {
     required this.targets,
     this.optimalMoves = 1,
     this.hasMemoryEcho = false,
+    this.enableOptimalDriftNudge,
   });
+
+  /// Whether the automatic Optimal Drift Nudge is enabled for this level.
+  ///
+  /// Defaults to false for Levels 1–5 (onboarding & fundamentals) and true for Levels 6–150.
+  bool get isOptimalDriftNudgeEnabled => enableOptimalDriftNudge ?? (id >= 6);
 
   /// Chapter number (1 to 10, 10 levels per chapter).
   int get chapter => ((id - 1) ~/ 10) + 1;

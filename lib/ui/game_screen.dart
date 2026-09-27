@@ -12,6 +12,7 @@ import '../game/scenes/shift_puzzle_game.dart';
 import 'game_controls.dart';
 import 'game_header.dart';
 import 'level_select_dialog.dart';
+import 'optimal_drift_nudge_dialog.dart';
 import 'win_dialog.dart';
 import 'widgets/tutorial_overlay.dart';
 
@@ -42,6 +43,7 @@ class _GameScreenState extends State<GameScreen> {
   Offset _panStart = Offset.zero;
   Offset _panCurrent = Offset.zero;
   bool _isWinDialogShowing = false;
+  bool _isModalShowing = false;
   bool _isTutorialDismissed = false;
 
   bool get _showTutorialOverlay {
@@ -55,6 +57,8 @@ class _GameScreenState extends State<GameScreen> {
   int _currentLevelUndoCount = 0;
   int _failedEchoAttempts = 0;
   bool _usedHintOnCurrentLevel = false;
+  bool _optimalDriftNudgeShown = false;
+  bool _optimalDriftDetected = false;
 
   bool get _isStruggling {
     final level = LevelDefinitions.getLevel(_currentLevelId);
@@ -106,7 +110,11 @@ class _GameScreenState extends State<GameScreen> {
     _isTutorialDismissed = false;
     _currentLevelRestartCount = 0;
     _currentLevelUndoCount = 0;
+    _failedEchoAttempts = 0;
     _usedHintOnCurrentLevel = false;
+    _optimalDriftNudgeShown = false;
+    _optimalDriftDetected = false;
+    _isModalShowing = false;
     final level = LevelDefinitions.getLevel(_currentLevelId);
     _engine = PuzzleEngine(level);
 
@@ -131,6 +139,7 @@ class _GameScreenState extends State<GameScreen> {
         if (justSeated) {
           _feedback?.playPieceSeated();
         }
+        _checkOptimalDriftNudge();
       },
     );
   }
@@ -149,6 +158,9 @@ class _GameScreenState extends State<GameScreen> {
     _currentLevelUndoCount = 0;
     _failedEchoAttempts = 0;
     _usedHintOnCurrentLevel = false;
+    _optimalDriftNudgeShown = false;
+    _optimalDriftDetected = false;
+    _isModalShowing = false;
     if (levelId > 2 && !(_progress?.isTutorialCompleted ?? false)) {
       _progress?.setTutorialCompleted();
       widget.analytics.logTutorialCompleted(_currentLevelId);
@@ -169,6 +181,11 @@ class _GameScreenState extends State<GameScreen> {
 
   void _restartCurrentLevel() {
     _currentLevelRestartCount++;
+    _optimalDriftNudgeShown = false;
+    _optimalDriftDetected = false;
+    _failedEchoAttempts = 0;
+    _usedHintOnCurrentLevel = false;
+    _isModalShowing = false;
     widget.analytics.logLevelRestarted(_currentLevelId);
     setState(() {
       _engine.reset();
@@ -201,6 +218,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _openLevelSelect() {
     if (_progress == null) return;
+    _isModalShowing = true;
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.7),
@@ -209,12 +227,15 @@ class _GameScreenState extends State<GameScreen> {
         progress: _progress!,
         onSelectLevel: _switchLevel,
       ),
-    );
+    ).then((_) {
+      _isModalShowing = false;
+    });
   }
 
   void _handleLevelSolved() {
     if (_isWinDialogShowing || !mounted) return;
     _isWinDialogShowing = true;
+    _isModalShowing = true;
     _feedback?.playLevelComplete();
 
     final level = LevelDefinitions.getLevel(_currentLevelId);
@@ -260,6 +281,15 @@ class _GameScreenState extends State<GameScreen> {
         );
       }
 
+      if (_optimalDriftDetected || _engine.moveCount > level.optimalMoves) {
+        widget.analytics.logLevelCompletedAfterOptimalDrift(
+          levelId: _currentLevelId,
+          moves: _engine.moveCount,
+          optimalMoves: level.optimalMoves,
+          stars: stars,
+        );
+      }
+
       if (!mounted) return;
       Future.delayed(const Duration(milliseconds: 380), () {
         if (!mounted) return;
@@ -276,6 +306,7 @@ class _GameScreenState extends State<GameScreen> {
             onNextLevel: () {
               Navigator.of(ctx).pop();
               _isWinDialogShowing = false;
+              _isModalShowing = false;
               final nextLevel = _currentLevelId + 1;
 
               widget.adService.showInterstitialIfAppropriate(
@@ -288,11 +319,13 @@ class _GameScreenState extends State<GameScreen> {
             onReplay: () {
               Navigator.of(ctx).pop();
               _isWinDialogShowing = false;
+              _isModalShowing = false;
               _restartCurrentLevel();
             },
           ),
         ).then((_) {
           _isWinDialogShowing = false;
+          _isModalShowing = false;
         });
       });
     });
@@ -407,6 +440,7 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
+    _isModalShowing = true;
     widget.analytics.logHintOffered(_currentLevelId);
     widget.analytics.logHintButtonViewed(_currentLevelId, isStruggling: _isStruggling);
 
@@ -499,7 +533,7 @@ class _GameScreenState extends State<GameScreen> {
                       onPressed: () {
                         Navigator.of(ctx).pop();
                         widget.analytics.logHintRequested(_currentLevelId);
-                        _executeRewardedAdForHint();
+                        _executeRewardedAdForHint(source: 'manual_hint');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF59E0B),
@@ -526,17 +560,104 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
       ),
-    );
+    ).then((_) {
+      _isModalShowing = false;
+    });
   }
 
-  void _executeRewardedAdForHint() {
-    final placement = 'hint_level_$_currentLevelId';
+  void _checkOptimalDriftNudge() {
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    if (!level.isOptimalDriftNudgeEnabled) return;
+    if (_optimalDriftNudgeShown) return;
+    if (_engine.isSolved) return;
+    if (_isWinDialogShowing || _isModalShowing) return;
+    if (_game.isAnimating || _game.isEchoReplaying) return;
+    if (_engine.echo.isRecording) return;
+    if (_game.activeHint != null) return;
+
+    if (_engine.moveCount == level.optimalMoves + 1) {
+      _optimalDriftDetected = true;
+      _optimalDriftNudgeShown = true;
+
+      widget.analytics.logOptimalDriftDetected(
+        levelId: _currentLevelId,
+        chapterId: level.chapter,
+        hasMemoryEcho: level.hasMemoryEcho,
+        moveCount: _engine.moveCount,
+        optimalMoves: level.optimalMoves,
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_engine.isSolved || _isWinDialogShowing || _isModalShowing) return;
+        if (_game.isAnimating || _game.isEchoReplaying) return;
+        _showOptimalDriftNudgeDialog();
+      });
+    }
+  }
+
+  void _showOptimalDriftNudgeDialog() {
+    final level = LevelDefinitions.getLevel(_currentLevelId);
+    _isModalShowing = true;
+
+    widget.analytics.logOptimalDriftNudgeShown(
+      levelId: _currentLevelId,
+      chapterId: level.chapter,
+      hasMemoryEcho: level.hasMemoryEcho,
+      moveCount: _engine.moveCount,
+      optimalMoves: level.optimalMoves,
+    );
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => OptimalDriftNudgeDialog(
+        levelId: _currentLevelId,
+        moveCount: _engine.moveCount,
+        optimalMoves: level.optimalMoves,
+        onKeepSolving: () {
+          Navigator.of(ctx).pop();
+          widget.analytics.logOptimalDriftKeepSolving(
+            levelId: _currentLevelId,
+            moveCount: _engine.moveCount,
+          );
+        },
+        onWatchAd: () {
+          Navigator.of(ctx).pop();
+          widget.analytics.logOptimalDriftHintRequested(
+            levelId: _currentLevelId,
+            moveCount: _engine.moveCount,
+          );
+          _executeRewardedAdForHint(source: 'optimal_drift');
+        },
+      ),
+    ).then((_) {
+      _isModalShowing = false;
+    });
+  }
+
+  void _executeRewardedAdForHint({String source = 'manual_hint'}) {
+    final placement = source == 'optimal_drift'
+        ? 'optimal_drift_level_$_currentLevelId'
+        : 'hint_level_$_currentLevelId';
     widget.analytics.logRewardedAdRequested(placement);
+    if (source == 'optimal_drift') {
+      widget.analytics.logOptimalDriftAdStarted(
+        levelId: _currentLevelId,
+        placement: placement,
+      );
+    }
 
     widget.adService.showRewardedAd(
       placement: placement,
       onRewardEarned: () {
         widget.analytics.logRewardedAdCompleted(placement);
+        if (source == 'optimal_drift') {
+          widget.analytics.logOptimalDriftAdRewarded(
+            levelId: _currentLevelId,
+            placement: placement,
+          );
+        }
         final level = LevelDefinitions.getLevel(_currentLevelId);
         final nextMove = PuzzleSolver.getNextBestMove(_engine.currentGrid, level);
 
@@ -544,6 +665,12 @@ class _GameScreenState extends State<GameScreen> {
         if (nextMove != null) {
           widget.analytics.logHintGranted(_currentLevelId);
           widget.analytics.logHintCompleted(_currentLevelId);
+          if (source == 'optimal_drift') {
+            widget.analytics.logOptimalDriftHintRevealed(
+              levelId: _currentLevelId,
+              moveCount: _engine.moveCount,
+            );
+          }
           _usedHintOnCurrentLevel = true;
           setState(() {
             _game.setHint(nextMove);
@@ -571,7 +698,24 @@ class _GameScreenState extends State<GameScreen> {
           );
         }
       },
-    );
+    ).then((rewardEarned) {
+      if (!rewardEarned && mounted) {
+        if (source == 'optimal_drift') {
+          widget.analytics.logOptimalDriftAdFailed(
+            levelId: _currentLevelId,
+            placement: placement,
+            reason: 'ad_not_completed',
+          );
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ad was not completed. Keep solving!'),
+            backgroundColor: Color(0xFF1E293B),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -588,6 +732,7 @@ class _GameScreenState extends State<GameScreen> {
               levelId: _currentLevelId,
               levelTitle: level.title,
               moveCount: _engine.moveCount,
+              optimalMoves: level.optimalMoves,
               isSoundEnabled: isSoundOn,
               onToggleSound: _toggleSound,
               onOpenLevelSelect: _openLevelSelect,

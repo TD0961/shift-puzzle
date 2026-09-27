@@ -5,6 +5,7 @@ class GameHeader extends StatelessWidget {
   final String levelTitle;
   final String? hint;
   final int moveCount;
+  final int optimalMoves;
   final int? bestMoves;
   final int stars;
   final bool isSoundEnabled;
@@ -17,6 +18,7 @@ class GameHeader extends StatelessWidget {
     required this.levelTitle,
     this.hint,
     required this.moveCount,
+    this.optimalMoves = 0,
     this.bestMoves,
     this.stars = 0,
     this.isSoundEnabled = true,
@@ -26,6 +28,8 @@ class GameHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isOverPar = optimalMoves > 0 && moveCount > optimalMoves;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Column(
@@ -133,7 +137,11 @@ class GameHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF334155)),
+                      border: Border.all(
+                        color: isOverPar
+                            ? const Color(0xFFFBBF24).withValues(alpha: 0.45)
+                            : const Color(0xFF334155),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -147,12 +155,24 @@ class GameHeader extends StatelessWidget {
                         ),
                         Text(
                           '$moveCount',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: isOverPar ? const Color(0xFFFBBF24) : Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        if (optimalMoves > 0) ...[
+                          Text(
+                            ' / $optimalMoves',
+                            style: TextStyle(
+                              color: isOverPar
+                                  ? const Color(0xFFFBBF24).withValues(alpha: 0.70)
+                                  : const Color(0xFF64748B),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
