@@ -89,10 +89,12 @@ class _WinDialogState extends State<WinDialog>
   Widget build(BuildContext context) {
     final stars = _starCount;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+    return PopScope(
+      canPop: false,
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) => Transform.scale(
@@ -308,6 +310,7 @@ class _WinDialogState extends State<WinDialog>
         ),
       ),
     ),
-  );
-}
+    ),
+    );
+  }
 }
