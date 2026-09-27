@@ -191,11 +191,28 @@ class PuzzleSolver {
     bwdQueue.add(_cloneGrid(goalGrid, rows, cols));
 
     int statesExplored = 0;
-    final halfDepth = (maxDepth + 1) ~/ 2;
+    int bestDist = maxDepth + 1;
+    String? bestMeetingCode;
 
     while (fwdQueue.isNotEmpty && bwdQueue.isNotEmpty) {
-      // Step Forward Queue if smaller or equal
-      final expandForward = fwdQueue.length <= bwdQueue.length;
+      final fwdFrontierDist = fwdVisited[_encodeGrid(fwdQueue.first, rows, cols)]!;
+      final bwdFrontierDist = bwdVisited[_encodeGrid(bwdQueue.first, rows, cols)]!;
+
+      // Termination condition: If sum of frontier distances >= bestDist, no shorter path is possible!
+      if (fwdFrontierDist + bwdFrontierDist >= bestDist) {
+        break;
+      }
+
+      // Expand the queue with smaller frontier distance, or smaller length on tie
+      final bool expandForward;
+      if (fwdFrontierDist < bwdFrontierDist) {
+        expandForward = true;
+      } else if (fwdFrontierDist > bwdFrontierDist) {
+        expandForward = false;
+      } else {
+        expandForward = fwdQueue.length <= bwdQueue.length;
+      }
+
       final currentQueue = expandForward ? fwdQueue : bwdQueue;
       final currentVisited = expandForward ? fwdVisited : bwdVisited;
       final otherVisited = expandForward ? bwdVisited : fwdVisited;
@@ -207,7 +224,7 @@ class PuzzleSolver {
       final currentDist = currentVisited[currentCode]!;
       statesExplored++;
 
-      if (currentDist >= halfDepth) continue;
+      if (currentDist >= bestDist) continue;
 
       // Expand rows
       for (int r = 0; r < rows; r++) {
@@ -217,24 +234,22 @@ class PuzzleSolver {
           final nextCode = _encodeGrid(nextGrid, rows, cols);
 
           if (!currentVisited.containsKey(nextCode)) {
-            currentVisited[nextCode] = currentDist + 1;
+            final nextDist = currentDist + 1;
+            currentVisited[nextCode] = nextDist;
             currentParentMove[nextCode] = PuzzleMove(isRow: true, index: r, direction: dir);
             currentParentState[nextCode] = currentCode;
 
             if (otherVisited.containsKey(nextCode)) {
-              return _reconstructBidirectionalPath(
-                meetingCode: nextCode,
-                fwdVisited: fwdVisited,
-                bwdVisited: bwdVisited,
-                fwdParentMove: fwdParentMove,
-                fwdParentState: fwdParentState,
-                bwdParentMove: bwdParentMove,
-                bwdParentState: bwdParentState,
-                statesExplored: statesExplored,
-              );
+              final totalDist = nextDist + otherVisited[nextCode]!;
+              if (totalDist < bestDist) {
+                bestDist = totalDist;
+                bestMeetingCode = nextCode;
+              }
             }
 
-            currentQueue.add(nextGrid);
+            if (nextDist < bestDist) {
+              currentQueue.add(nextGrid);
+            }
           }
         }
       }
@@ -247,30 +262,41 @@ class PuzzleSolver {
           final nextCode = _encodeGrid(nextGrid, rows, cols);
 
           if (!currentVisited.containsKey(nextCode)) {
-            currentVisited[nextCode] = currentDist + 1;
+            final nextDist = currentDist + 1;
+            currentVisited[nextCode] = nextDist;
             currentParentMove[nextCode] = PuzzleMove(isRow: false, index: c, direction: dir);
             currentParentState[nextCode] = currentCode;
 
             if (otherVisited.containsKey(nextCode)) {
-              return _reconstructBidirectionalPath(
-                meetingCode: nextCode,
-                fwdVisited: fwdVisited,
-                bwdVisited: bwdVisited,
-                fwdParentMove: fwdParentMove,
-                fwdParentState: fwdParentState,
-                bwdParentMove: bwdParentMove,
-                bwdParentState: bwdParentState,
-                statesExplored: statesExplored,
-              );
+              final totalDist = nextDist + otherVisited[nextCode]!;
+              if (totalDist < bestDist) {
+                bestDist = totalDist;
+                bestMeetingCode = nextCode;
+              }
             }
 
-            currentQueue.add(nextGrid);
+            if (nextDist < bestDist) {
+              currentQueue.add(nextGrid);
+            }
           }
         }
       }
     }
 
-    return null;
+    if (bestMeetingCode == null || bestDist > maxDepth) {
+      return null;
+    }
+
+    return _reconstructBidirectionalPath(
+      meetingCode: bestMeetingCode,
+      fwdVisited: fwdVisited,
+      bwdVisited: bwdVisited,
+      fwdParentMove: fwdParentMove,
+      fwdParentState: fwdParentState,
+      bwdParentMove: bwdParentMove,
+      bwdParentState: bwdParentState,
+      statesExplored: statesExplored,
+    );
   }
 
   static SolverResult _reconstructBidirectionalPath({

@@ -306,7 +306,7 @@ class LevelDefinitions {
           position: BoardPosition(3, 2),
         ),
       ],
-      optimalMoves: 4,
+      optimalMoves: 3,
     );
   }
 
@@ -479,7 +479,7 @@ class LevelDefinitions {
           position: BoardPosition(2, 3),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
       hasMemoryEcho: true,
     );
   }
@@ -565,7 +565,7 @@ class LevelDefinitions {
           position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
     );
   }
 
@@ -655,7 +655,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
       hasMemoryEcho: true,
     );
   }
@@ -756,7 +756,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -817,7 +817,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
     );
   }
 
@@ -1357,7 +1357,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 3),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1391,7 +1391,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1425,7 +1425,7 @@ class LevelDefinitions {
           position: BoardPosition(3, 3),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1598,7 +1598,7 @@ class LevelDefinitions {
           position: BoardPosition(4, 2),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -1634,7 +1634,7 @@ class LevelDefinitions {
           position: BoardPosition(2, 0),
         ),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
     );
   }
 
@@ -1912,7 +1912,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(2, 2)),
         PuzzleTarget(pieceType: PieceType.violetTriangle, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
       hasMemoryEcho: true,
     );
   }
@@ -1934,7 +1934,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(2, 2)),
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(3, 3)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -2049,7 +2049,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.roseSquare, position: BoardPosition(1, 3)),
         PuzzleTarget(pieceType: PieceType.violetTriangle, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
     );
   }
 
@@ -2343,7 +2343,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(1, 3)),
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
       hasMemoryEcho: true,
     );
   }
@@ -2463,7 +2463,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.roseSquare, position: BoardPosition(2, 0)),
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 9,
+      optimalMoves: 8,
       hasMemoryEcho: true,
     );
   }
@@ -2580,7 +2580,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(2, 3)),
         PuzzleTarget(pieceType: PieceType.cyanCircle, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 10,
+      optimalMoves: 9,
       hasMemoryEcho: true,
     );
   }
@@ -3098,7 +3098,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(3, 2)),
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(2, 1)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
     );
   }
 
@@ -3142,7 +3142,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.roseSquare, position: BoardPosition(2, 0)),
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(0, 4)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
     );
   }
 
@@ -3335,7 +3335,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.amberDiamond, position: BoardPosition(4, 2)),
         PuzzleTarget(pieceType: PieceType.violetTriangle, position: BoardPosition(2, 4)),
       ],
-      optimalMoves: 8,
+      optimalMoves: 7,
     );
   }
 
@@ -3734,7 +3734,7 @@ class LevelDefinitions {
         PuzzleTarget(pieceType: PieceType.emeraldHexagon, position: BoardPosition(4, 0)),
         PuzzleTarget(pieceType: PieceType.roseSquare, position: BoardPosition(0, 2)),
       ],
-      optimalMoves: 6,
+      optimalMoves: 5,
     );
   }
 
