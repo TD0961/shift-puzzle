@@ -62,7 +62,7 @@ class AdMobAdService implements AdService {
 
   String get interstitialAdUnitId {
     if (customInterstitialUnitId != null) return customInterstitialUnitId!;
-    if (!kDebugMode && _isProductionMode && _envInterstitial.isNotEmpty) {
+    if (!kDebugMode && _isProductionMode) {
       return _envInterstitial;
     }
     return defaultTargetPlatform == TargetPlatform.iOS
@@ -72,7 +72,7 @@ class AdMobAdService implements AdService {
 
   String get rewardedAdUnitId {
     if (customRewardedUnitId != null) return customRewardedUnitId!;
-    if (!kDebugMode && _isProductionMode && _envRewarded.isNotEmpty) {
+    if (!kDebugMode && _isProductionMode) {
       return _envRewarded;
     }
     return defaultTargetPlatform == TargetPlatform.iOS
@@ -116,6 +116,10 @@ class AdMobAdService implements AdService {
 
   void _loadInterstitialAd() {
     if (!_isMobilePlatform || !_isInitialized || _isLoadingInterstitial || _interstitialAd != null) return;
+    if (interstitialAdUnitId.isEmpty) {
+      debugPrint('[AdMobAdService] Interstitial ad unit ID is empty or unconfigured. Skipping load.');
+      return;
+    }
     _isLoadingInterstitial = true;
 
     try {
@@ -144,6 +148,10 @@ class AdMobAdService implements AdService {
 
   void _loadRewardedAd() async {
     if (!_isMobilePlatform || !_isInitialized || _isLoadingRewarded || _rewardedAd != null) return;
+    if (rewardedAdUnitId.isEmpty) {
+      debugPrint('[AdMobAdService] Rewarded ad unit ID is empty or unconfigured. Skipping load.');
+      return;
+    }
     if (connectivityService != null) {
       final isOnline = await connectivityService!.hasInternetConnection();
       if (!isOnline) {

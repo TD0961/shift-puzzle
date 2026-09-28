@@ -1,6 +1,6 @@
 # Privacy Policy for Shift Puzzle
 
-*Last updated: September 26, 2026*
+*Last updated: September 28, 2026*
 
 Shift Puzzle ("we", "our", or "the Game") is a mobile puzzle application available on the Google Play Store. We are committed to respecting and protecting the privacy of our players. This Privacy Policy describes how information is handled when you download, install, and play Shift Puzzle.
 
@@ -24,7 +24,7 @@ All game progress, level unlocks, star achievements, personal bests, and audio p
 Shift Puzzle displays occasional, non-intrusive advertisements to support the development and maintenance of the game. We integrate **Google Mobile Ads (AdMob)**, a service provided by Google LLC.
 
 Our advertising architecture respects player focus and follows a conservative, player-first policy:
-* **Optional Rewarded Ads**: Players may voluntarily choose to watch a short rewarded video advertisement in exchange for an in-game hint. Rewarded ads are strictly opt-in, explicitly disclosed before display, and never forced automatically.
+* **Optional Rewarded Ads**: Players may voluntarily choose to watch a short rewarded video advertisement in exchange for an in-game hint or a single-use +5 move rescue when the move limit is reached. Rewarded ads are strictly opt-in, explicitly disclosed before display, and never forced automatically.
 * **Non-Intrusive Interstitials**: Periodic interstitial ads appear only at natural level completion transitions, strictly adhering to cooldown intervals (minimum 3 minutes) and frequency limits (at least 4 completed levels between ads). Introductory levels (Levels 1–10) are strictly 100% ad-free.
 * **No In-Board Banners**: The puzzle board is kept clean and free of banner advertisements.
 
