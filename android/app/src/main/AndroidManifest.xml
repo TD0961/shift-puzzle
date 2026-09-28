@@ -5,7 +5,8 @@
     <application
         android:label="Shift Puzzle"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <!-- AdMob App ID configured via manifest placeholder (defaults safely to Google test ID) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

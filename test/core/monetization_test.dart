@@ -175,6 +175,62 @@ void main() {
       expect(adService.interstitialAdUnitId, startsWith('ca-app-pub-3940256099942544'));
       expect(adService.rewardedAdUnitId, startsWith('ca-app-pub-3940256099942544'));
     });
+
+    test('production-configured empty ad unit IDs do not fall back to test IDs and remain empty', () {
+      final adService = AdMobAdService(
+        customInterstitialUnitId: '',
+        customRewardedUnitId: '',
+      );
+      expect(adService.interstitialAdUnitId, isEmpty);
+      expect(adService.rewardedAdUnitId, isEmpty);
+      expect(adService.interstitialAdUnitId, isNot(contains('ca-app-pub-3940256099942544')));
+      expect(adService.rewardedAdUnitId, isNot(contains('ca-app-pub-3940256099942544')));
+    });
+
+    test('empty ad unit IDs fail-safe without exception during preload or ad display requests', () async {
+      final adService = AdMobAdService(
+        customInterstitialUnitId: '',
+        customRewardedUnitId: '',
+      );
+      await adService.initialize();
+
+      // Preload should complete silently without throwing
+      await expectLater(adService.preloadRewardedAd(), completes);
+
+      // Showing interstitial should return false without throwing
+      final interstitialResult = await adService.showInterstitialIfAppropriate(
+        levelId: 15,
+        completedLevelCount: 5,
+      );
+      expect(interstitialResult, isFalse);
+
+      // Showing rewarded ad should handle mock fallback gracefully in test environment
+      bool rewardEarned = false;
+      final rewardedResult = await adService.showRewardedAd(
+        placement: 'extra_moves',
+        onRewardEarned: () {
+          rewardEarned = true;
+        },
+      );
+      expect(rewardedResult, isTrue);
+      expect(rewardEarned, isTrue);
+    });
+
+    test('production ad unit IDs correctly override defaults without exposing test credentials', () {
+      const prodInterstitial = 'ca-app-pub-1234567890123456/1111111111';
+      const prodRewarded = 'ca-app-pub-1234567890123456/2222222222';
+
+      final adService = AdMobAdService(
+        customInterstitialUnitId: prodInterstitial,
+        customRewardedUnitId: prodRewarded,
+      );
+
+      expect(adService.interstitialAdUnitId, prodInterstitial);
+      expect(adService.rewardedAdUnitId, prodRewarded);
+      expect(adService.interstitialAdUnitId, isNot(contains('3940256099942544')));
+      expect(adService.rewardedAdUnitId, isNot(contains('3940256099942544')));
+    });
   });
 }
+
 
