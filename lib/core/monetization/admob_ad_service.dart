@@ -146,23 +146,23 @@ class AdMobAdService implements AdService {
     }
   }
 
-  void _loadRewardedAd() async {
+  Future<void> _loadRewardedAd() async {
     if (!_isMobilePlatform || !_isInitialized || _isLoadingRewarded || _rewardedAd != null) return;
     if (rewardedAdUnitId.isEmpty) {
       debugPrint('[AdMobAdService] Rewarded ad unit ID is empty or unconfigured. Skipping load.');
       return;
     }
-    if (connectivityService != null) {
-      final isOnline = await connectivityService!.hasInternetConnection();
-      if (!isOnline) {
-        debugPrint('[AdMobAdService] Device is offline. Skipping rewarded ad load.');
-        return;
-      }
-    }
-    if (_isLoadingRewarded || _rewardedAd != null) return;
-    _isLoadingRewarded = true;
-
     try {
+      if (connectivityService != null) {
+        final isOnline = await connectivityService!.hasInternetConnection();
+        if (!isOnline) {
+          debugPrint('[AdMobAdService] Device is offline. Skipping rewarded ad load.');
+          return;
+        }
+      }
+      if (_isLoadingRewarded || _rewardedAd != null) return;
+      _isLoadingRewarded = true;
+
       RewardedAd.load(
         adUnitId: rewardedAdUnitId,
         request: const AdRequest(),

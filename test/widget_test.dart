@@ -58,6 +58,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+    });
+
     await tester.pumpWidget(const ShiftPuzzleApp());
     await tester.pump();
 
@@ -86,6 +90,10 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+    });
 
     await tester.pumpWidget(const ShiftPuzzleApp());
     await tester.pump();
@@ -130,6 +138,10 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+    });
 
     await tester.pumpWidget(const ShiftPuzzleApp());
     await tester.pump();
@@ -229,7 +241,7 @@ void main() {
 
     // Tap Replay button on dialog
     await tester.tap(find.text('Replay'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 1500));
     await tester.pump();
 
     // Level resets: moves = 0, echo resets to idle REC
@@ -243,6 +255,10 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+    });
 
     await tester.pumpWidget(const ShiftPuzzleApp());
     await tester.pump();
@@ -327,6 +343,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 10,
+    });
+
     await tester.pumpWidget(const ShiftPuzzleApp());
     await tester.pump();
 
@@ -361,6 +381,31 @@ void main() {
     // Move count reverts to 0, Undo button is disabled again
     expect(find.text('0'), findsOneWidget);
     expect(tester.widget<IconButton>(undoBtn).onPressed, isNull);
+  });
+
+  testWidgets('Next level button is disabled when next level is locked without passing current level', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({
+      'sp_highest_unlocked': 1,
+    });
+
+    await tester.pumpWidget(const ShiftPuzzleApp());
+    await tester.pump();
+
+    expect(find.text('LEVEL 1'), findsOneWidget);
+
+    final nextBtn = find.byWidgetPredicate(
+      (w) => w is IconButton && w.tooltip == 'Next Level',
+    );
+    expect(tester.widget<IconButton>(nextBtn).onPressed, isNull);
+
+    await tester.tap(nextBtn);
+    await tester.pump();
+    expect(find.text('LEVEL 1'), findsOneWidget);
   });
 
   testWidgets('Sound toggle button toggles audio state and icon', (tester) async {
@@ -533,6 +578,7 @@ void main() {
 
     SharedPreferences.setMockInitialValues({
       'sp_tutorial_completed': false,
+      'sp_highest_unlocked': 2,
     });
     final prefs = await SharedPreferences.getInstance();
     final progress = PlayerProgress(prefs);

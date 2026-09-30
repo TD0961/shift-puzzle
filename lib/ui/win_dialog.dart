@@ -35,7 +35,7 @@ class _WinDialogState extends State<WinDialog>
   int get _starCount {
     if (widget.optimalMoves <= 0) return 3;
     if (widget.moveCount <= widget.optimalMoves) return 3;
-    if (widget.moveCount <= widget.optimalMoves + 2) return 2;
+    if (widget.moveCount <= widget.optimalMoves + 1) return 2;
     return 1;
   }
 

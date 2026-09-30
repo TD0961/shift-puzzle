@@ -24,3 +24,17 @@
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 
+# AndroidX DataStore & Preferences (used by shared_preferences_android)
+-keep class androidx.datastore.** { *; }
+-keep class androidx.preference.** { *; }
+-keep class androidx.work.** { *; }
+
+# Keep native methods and JNI bindings
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Keep our application and activity classes
+-keep class com.shiftpuzzle.shift_puzzle.** { *; }
+-keep class com.shiftpuzzle.game.** { *; }
+

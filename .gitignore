@@ -62,3 +62,8 @@ secrets/
 # Widget Preview related
 .widget_preview/
 
+# APK binaries & local QA server artifacts
+*.apk
+*.aab
+qa-apk-server/*.apk
+

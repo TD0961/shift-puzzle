@@ -7,27 +7,35 @@ import 'core/monetization/ad_service.dart';
 import 'core/storage/player_progress.dart';
 import 'ui/game_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
+
+  // Set orientations asynchronously without blocking the first frame render
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  final progress = await PlayerProgress.initialize();
   const connectivityService = NetworkConnectivityService();
   final adService = kIsWeb
       ? NoOpAdService()
       : AdMobAdService(connectivityService: connectivityService);
-  await adService.initialize();
   const analytics = DebugAnalyticsService();
 
+  // Mount Flutter UI IMMEDIATELY on the very first frame.
+  // GameScreen handles asynchronous PlayerProgress initialization gracefully.
   runApp(ShiftPuzzleApp(
-    progress: progress,
     adService: adService,
     analytics: analytics,
     connectivityService: connectivityService,
   ));
+
+  // Initialize ad service asynchronously after Flutter UI has mounted
+  try {
+    adService.initialize();
+  } catch (e) {
+    debugPrint('[Main] AdService initialization deferred: $e');
+  }
 }
 
 class ShiftPuzzleApp extends StatelessWidget {

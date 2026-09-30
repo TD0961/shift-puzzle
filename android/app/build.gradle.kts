@@ -13,6 +13,12 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.shiftpuzzle.shift_puzzle"
     compileSdk = 36
@@ -26,7 +32,7 @@ android {
     defaultConfig {
         applicationId = "com.shiftpuzzle.game"
         minSdk = flutter.minSdkVersion
-        targetSdk = 36
+        targetSdk = 34
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
@@ -34,9 +40,10 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        // Production AdMob App ID can be supplied in key.properties or via ADMOB_APP_ID environment variable.
+        // Production AdMob App ID can be supplied in key.properties, local.properties, or via ADMOB_APP_ID environment variable.
         // Defaults to Google's official sample App ID for testing and safety.
         val admobAppId = keystoreProperties.getProperty("admobAppId")
+            ?: localProperties.getProperty("admobAppId")
             ?: System.getenv("ADMOB_APP_ID")
             ?: "ca-app-pub-3940256099942544~3347511713"
         manifestPlaceholders["admobAppId"] = admobAppId

@@ -199,27 +199,27 @@ void main() {
     // ------------------------------------------------------------------------
     // GROUP 1: Move-Budget Limits & Authoritative Optimal Rules (Reqs 1, 2, 3, 4, 27)
     // ------------------------------------------------------------------------
-    test('1 & 2. Exact move limit formula: normalMoveLimit = optimalMoves + 3', () {
+    test('1 & 2. Exact move limit formula: normalMoveLimit = optimalMoves + 2', () {
       final level6 = LevelDefinitions.getLevel(6); // optimal 5
-      expect(level6.optimalMoves + 3, equals(8));
+      expect(level6.optimalMoves + 2, equals(7));
 
       final level8 = LevelDefinitions.getLevel(8); // optimal 6
-      expect(level8.optimalMoves + 3, equals(9));
+      expect(level8.optimalMoves + 2, equals(8));
 
       final level30 = LevelDefinitions.getLevel(30); // optimal 8
-      expect(level30.optimalMoves + 3, equals(11));
+      expect(level30.optimalMoves + 2, equals(10));
     });
 
     test('3 & 4. Player can continue freely below move limit without interruption', () {
-      final level = LevelDefinitions.getLevel(6); // optimal 5, limit 8
+      final level = LevelDefinitions.getLevel(6); // optimal 5, limit 7
       final engine = PuzzleEngine(level);
 
-      // Make 7 moves (< 8)
-      for (int i = 0; i < 7; i++) {
+      // Make 6 moves (< 7)
+      for (int i = 0; i < 6; i++) {
         engine.shiftRow(0, ShiftDirection.left);
       }
-      expect(engine.moveCount, equals(7));
-      expect(engine.moveCount < level.optimalMoves + 3, isTrue);
+      expect(engine.moveCount, equals(6));
+      expect(engine.moveCount < level.optimalMoves + 2, isTrue);
     });
 
     test('27. Authoritative optimal value is strictly preserved and never mutated', () {
@@ -228,7 +228,7 @@ void main() {
       // Even if extra moves are calculated:
       const extraMoves = 5;
       expect(level.optimalMoves, equals(5));
-      expect(level.optimalMoves + 3 + extraMoves, equals(13));
+      expect(level.optimalMoves + 2 + extraMoves, equals(12));
       expect(level.optimalMoves, equals(5));
     });
 
@@ -344,7 +344,7 @@ void main() {
 
       expect(engine.moveCount, equals(2));
       expect(engine.echo.length, equals(2));
-      expect(engine.moveCount < level.optimalMoves + 3, isTrue);
+      expect(engine.moveCount < level.optimalMoves + 2, isTrue);
     });
 
     // ------------------------------------------------------------------------
@@ -370,7 +370,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       progress.recordLevelCompletion(levelId: 1, moveCount: 1, stars: 3, totalLevels: 150);
-      progress.setLastPlayedLevel(6); // optimal 5, normal move limit = 8
+      progress.setLastPlayedLevel(6); // optimal 5, normal move limit = 7
 
       await tester.pumpWidget(
         MaterialApp(
@@ -388,8 +388,8 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      // Make 8 non-solving shifts to reach move limit
-      await makeMoves(tester, game, 8);
+      // Make 7 non-solving shifts to reach move limit
+      await makeMoves(tester, game, 7);
 
       // Allow PostFrameCallback to display MoveLimitDialog
       await tester.pump(const Duration(milliseconds: 100));
@@ -409,7 +409,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       progress.recordLevelCompletion(levelId: 1, moveCount: 1, stars: 3, totalLevels: 150);
-      progress.setLastPlayedLevel(6); // optimal 5, normal limit 8
+      progress.setLastPlayedLevel(6); // optimal 5, normal limit 7
 
       await tester.pumpWidget(
         MaterialApp(
@@ -428,8 +428,8 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      // Make 8 moves to trigger dialog
-      await makeMoves(tester, game, 8);
+      // Make 7 moves to trigger dialog
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.byType(MoveLimitDialog), findsOneWidget);
@@ -445,13 +445,13 @@ void main() {
       expect(analytics.loggedEvents, contains('move_limit_extra_moves_granted'));
       expect(find.textContaining('+5 extra moves unlocked'), findsOneWidget);
 
-      // Board is unlocked: player can make move 9
+      // Board is unlocked: player can make move 8
       game.triggerShiftRow(0, ShiftDirection.left);
       await tester.pump(const Duration(milliseconds: 210));
       await tester.pump();
 
-      expect(find.text('9'), findsOneWidget);
-      expect(find.text('Limit: 9 / 13'), findsOneWidget);
+      expect(find.text('8'), findsOneWidget);
+      expect(find.text('Limit: 8 / 12'), findsOneWidget);
     });
 
     testWidgets('11. Undo remains disabled after +5 extension is granted', (tester) async {
@@ -480,8 +480,8 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      // Reach move limit (8 moves)
-      await makeMoves(tester, game, 8);
+      // Reach move limit (7 moves)
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       // Grant +5 moves
@@ -521,7 +521,7 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
@@ -560,7 +560,7 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       // Tap watch ad while offline
@@ -609,7 +609,7 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
@@ -631,7 +631,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       progress.recordLevelCompletion(levelId: 1, moveCount: 1, stars: 3, totalLevels: 150);
-      progress.setLastPlayedLevel(6); // optimal 5, normal 8, extended 13
+      progress.setLastPlayedLevel(6); // optimal 5, normal 7, extended 12
 
       await tester.pumpWidget(
         MaterialApp(
@@ -650,8 +650,8 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      // 8 moves to limit
-      await makeMoves(tester, game, 8);
+      // 7 moves to limit
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       // Grant 1st extension (+5 moves)
@@ -659,7 +659,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
-      // Make 5 more moves to reach extended limit (move 13)
+      // Make 5 more moves to reach extended limit (move 12)
       for (int i = 0; i < 5; i++) {
         game.triggerShiftRow(0, ShiftDirection.left);
         await tester.pump(const Duration(milliseconds: 210));
@@ -701,7 +701,7 @@ void main() {
         find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>),
       ).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.byType(MoveLimitDialog), findsOneWidget);
@@ -714,7 +714,7 @@ void main() {
       // Board is reset
       expect(find.text('0'), findsOneWidget);
       expect(find.text(' / 5'), findsOneWidget);
-      expect(find.text('Limit: 0 / 8'), findsOneWidget);
+      expect(find.text('Limit: 0 / 7'), findsOneWidget);
       expect(progress.isLevelCompleted(1), isTrue); // Permanent progress untouched
     });
 
@@ -725,9 +725,9 @@ void main() {
             body: GameHeader(
               levelId: 6,
               levelTitle: 'Trio Harmony',
-              moveCount: 7,
+              moveCount: 6,
               optimalMoves: 5,
-              moveLimit: 8,
+              moveLimit: 7,
               hasExtraMoves: false,
             ),
           ),
@@ -735,9 +735,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('7'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
       expect(find.text(' / 5'), findsOneWidget);
-      expect(find.text('Limit: 7 / 8'), findsOneWidget);
+      expect(find.text('Limit: 6 / 7'), findsOneWidget);
 
       // Now with extra moves (+5 bonus)
       await tester.pumpWidget(
@@ -746,9 +746,9 @@ void main() {
             body: GameHeader(
               levelId: 6,
               levelTitle: 'Trio Harmony',
-              moveCount: 10,
+              moveCount: 9,
               optimalMoves: 5,
-              moveLimit: 13,
+              moveLimit: 12,
               hasExtraMoves: true,
             ),
           ),
@@ -756,9 +756,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('10'), findsOneWidget);
+      expect(find.text('9'), findsOneWidget);
       expect(find.text('+5 bonus'), findsOneWidget);
-      expect(find.text('Limit: 10 / 13'), findsOneWidget);
+      expect(find.text('Limit: 9 / 12'), findsOneWidget);
     });
 
     testWidgets('26. WinDialog reports actual moves used and true optimal par accurately', (tester) async {

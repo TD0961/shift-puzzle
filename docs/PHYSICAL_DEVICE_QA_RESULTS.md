@@ -5,7 +5,8 @@
 **Package:** `com.shiftpuzzle.game`  
 **Internal Namespace:** `com.shiftpuzzle.shift_puzzle`  
 **Target Build:** Version `1.0.0+2` (versionCode: 2, versionName: "1.0.0")  
-**Git Commit:** `ea2c8bc`  
+**Git Commit:** `193a1ae`  
+**QA APK SHA-256:** `8a0dfea011676c36325f89447f2820a10e46d4440afc7ac61403772ae5b3a99f` (`build/app/outputs/flutter-apk/app-release.apk`)  
 **Evaluation Status:** **AUTOMATED CHECKS PASS — PHYSICAL HARDWARE VALIDATION BLOCKED**  
 
 ---

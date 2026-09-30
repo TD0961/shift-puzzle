@@ -2,9 +2,11 @@
 
 **Application:** Shift Puzzle  
 **Package:** `com.shiftpuzzle.game`  
-**Current Track:** Closed Testing (Alpha)  
-**Required Opted-in Testers:** Minimum 12 continuous testers  
-**Mandatory Testing Duration:** Minimum 14 continuous days  
+**Official Closed Test Status:** **NOT STARTED** (Preparation Phase Only — Awaiting Google Play Developer Account Registration & Closed Track Setup)  
+**Current Track:** Closed Testing (Alpha — Pending Track Creation)  
+**Required Opted-in Testers:** Minimum 12 continuous testers (15–20 recruited buffer)  
+**Current Opted-in Testers:** 0 (Recruitment roster prepared; 0 active invites sent)  
+**Official 14-Day Clock:** **NOT STARTED** (0 / 14 days)  
 **Target Release Artifact:** `build/app/outputs/bundle/release/app-release.aab` (Version `1.0.0+2`)  
 **Feedback Mechanism:** `support@shiftpuzzle.game` and Play Store Closed Beta Feedback  
 

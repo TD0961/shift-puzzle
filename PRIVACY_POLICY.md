@@ -28,10 +28,10 @@ Our advertising architecture respects player focus and follows a conservative, p
 * **Non-Intrusive Interstitials**: Periodic interstitial ads appear only at natural level completion transitions, strictly adhering to cooldown intervals (minimum 3 minutes) and frequency limits (at least 4 completed levels between ads). Introductory levels (Levels 1–10) are strictly 100% ad-free.
 * **No In-Board Banners**: The puzzle board is kept clean and free of banner advertisements.
 
-Google AdMob may collect and process certain technical information in accordance with its own Privacy Policy, including:
+Google AdMob may collect and process certain technical information in accordance with its own Privacy Policy to serve ads, prevent fraud, and maintain SDK reliability:
 * **Device Identifiers**: Advertising ID (such as the Google Advertising ID / Android Ad ID) and vendor identifiers.
-* **Approximate Location**: Inferred at the city or country level from your device's IP address.
-* **App Performance & Interaction Data**: Diagnostic metrics, crash reports, ad impression counts, clicks, and interaction timestamps.
+* **Approximate Location**: Inferred at the city or country level from your device's network IP address (no GPS or precise location is ever accessed).
+* **Ad Interaction & SDK Performance Data**: Ad impressions, click timestamps, and SDK-level diagnostic/error logs required for ad delivery. Shift Puzzle itself does **not** bundle any third-party analytics or application-level crash-reporting services (such as Firebase, Sentry, or Crashlytics).
 
 For more details on how Google handles advertising data and how you can opt out of personalized advertising, please visit:
 * [Google Privacy Policy](https://policies.google.com/privacy)
@@ -42,7 +42,7 @@ For more details on how Google handles advertising data and how you can opt out 
 
 ## 3. Children's Privacy
 
-Shift Puzzle is an abstract geometric logic puzzle game designed for a general audience aged 13 and older. We do not knowingly collect personal information from children under the age of 13. If you believe that a child has provided us with personal information, please contact us immediately so that we can take appropriate steps.
+Shift Puzzle is an abstract geometric logic puzzle game designed for a general audience. The game features no child-directed themes, cartoons, mascots, or educational claims. We do not knowingly collect personal information from children under the age of 13 (or under the applicable age of digital consent in your jurisdiction). Because the core application collects zero personal information from any user, no child data is ever requested or stored by us. If you have any concerns regarding advertising or data handling, please contact us immediately.
 
 ---
 

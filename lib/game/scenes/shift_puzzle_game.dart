@@ -44,46 +44,145 @@ class ShiftPuzzleGame extends FlameGame {
   double _cellSpacing = 6.0;
   Offset _boardOrigin = Offset.zero;
 
-  // Visual styling
+  // Visual styling: 3D Glowing Neon Cyber-Glass Theme (App Icon Match)
+  final Paint _boardAuraPaint = Paint()
+    ..color = const Color(0xFF0066FF).withValues(alpha: 0.35)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+
   final Paint _boardBgPaint = Paint()
-    ..color = const Color(0xFF0F172A)
+    ..color = const Color(0xFF02071E)
     ..style = PaintingStyle.fill;
 
   final Paint _boardBorderPaint = Paint()
-    ..color = const Color(0xFF334155)
+    ..color = const Color(0xFF1E60FF)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.0;
+    ..strokeWidth = 2.5;
 
-  final Paint _cellBgPaint = Paint()
-    ..color = const Color(0xFF1E293B)
-    ..style = PaintingStyle.fill;
-
-  final Paint _activeLinePaint = Paint()
-    ..color = const Color(0xFF38BDF8).withValues(alpha: 0.12)
-    ..style = PaintingStyle.fill;
-
-  final Paint _activeEchoLinePaint = Paint()
-    ..color = const Color(0xFFA855F7).withValues(alpha: 0.22)
-    ..style = PaintingStyle.fill;
-
-  final Paint _activeEchoLineBorderPaint = Paint()
-    ..color = const Color(0xFFC084FC).withValues(alpha: 0.50)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5;
-
-  final Paint _echoPreviewBgPaint = Paint()
-    ..color = const Color(0xFFA855F7).withValues(alpha: 0.10)
-    ..style = PaintingStyle.fill;
-
-  final Paint _echoPreviewBorderPaint = Paint()
-    ..color = const Color(0xFFC084FC).withValues(alpha: 0.35)
+  final Paint _boardInnerRimPaint = Paint()
+    ..color = const Color(0xFF00E5FF).withValues(alpha: 0.40)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.0;
 
-  final Paint _echoPreviewChevronPaint = Paint()
-    ..color = const Color(0xFFE9D5FF).withValues(alpha: 0.65)
+  // 5x5 Individual Tile Paints (App Icon Glowing Sapphire Blue Style)
+  final Paint _cellAuraPaint = Paint()
+    ..color = const Color(0xFF0055FF).withValues(alpha: 0.32)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+
+  final Paint _cellBgPaint = Paint()
+    ..color = const Color(0xFF0C2A78)
+    ..style = PaintingStyle.fill;
+
+  final Paint _cellRimPaint = Paint()
+    ..color = const Color(0xFF2E75FF)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.8;
+
+  final Paint _cellGlossPaint = Paint()
+    ..color = const Color(0xFF80B3FF).withValues(alpha: 0.22)
+    ..style = PaintingStyle.fill;
+
+  // 3D Tile Extrusion and Bevel Paints
+  final Paint _cellBaseShadowPaint = Paint()
+    ..color = const Color(0xFF020718)
+    ..style = PaintingStyle.fill;
+
+  final Paint _cellSideWallPaint = Paint()
+    ..color = const Color(0xFF06153E)
+    ..style = PaintingStyle.fill;
+
+  final Paint _cellTopBevelLightPaint = Paint()
+    ..color = const Color(0xFF569CFF).withValues(alpha: 0.85)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.4;
+
+  final Paint _cellBottomBevelDarkPaint = Paint()
+    ..color = const Color(0xFF020718).withValues(alpha: 0.80)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.4;
+
+  // Active Shifting Row/Col Tile Paints (Icon Electric Cyan Style)
+  final Paint _activeCellAuraPaint = Paint()
+    ..color = const Color(0xFF00E5FF).withValues(alpha: 0.45)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
+
+  final Paint _activeCellBgPaint = Paint()
+    ..color = const Color(0xFF0091EA)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeCellRimPaint = Paint()
+    ..color = const Color(0xFFE0F7FA)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.0;
+
+  final Paint _activeCellBaseShadowPaint = Paint()
+    ..color = const Color(0xFF010A1E)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeCellSideWallPaint = Paint()
+    ..color = const Color(0xFF005B94)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeCellTopBevelLightPaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.90)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.6;
+
+  // Shifting Laser Track Behind Row (Electric Cyan)
+  final Paint _activeLineAuraPaint = Paint()
+    ..color = const Color(0xFF00E5FF).withValues(alpha: 0.35)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+  final Paint _activeLinePaint = Paint()
+    ..color = const Color(0xFF00E5FF).withValues(alpha: 0.25)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeLineBorderPaint = Paint()
+    ..color = const Color(0xFF00E5FF).withValues(alpha: 0.95)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.0;
+
+  final Paint _activeLineStreakPaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.50)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.8
+    ..strokeCap = StrokeCap.round;
+
+  final Paint _activeArrowPaint = Paint()
+    ..color = const Color(0xFF00E5FF)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeArrowRimPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.8;
+
+  // Active Laser Shift Lane (Echo)
+  final Paint _activeEchoLineAuraPaint = Paint()
+    ..color = const Color(0xFFC084FC).withValues(alpha: 0.35)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+
+  final Paint _activeEchoLinePaint = Paint()
+    ..color = const Color(0xFFA855F7).withValues(alpha: 0.28)
+    ..style = PaintingStyle.fill;
+
+  final Paint _activeEchoLineBorderPaint = Paint()
+    ..color = const Color(0xFFE9D5FF).withValues(alpha: 0.90)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.2;
+
+  final Paint _echoPreviewBgPaint = Paint()
+    ..color = const Color(0xFFA855F7).withValues(alpha: 0.12)
+    ..style = PaintingStyle.fill;
+
+  final Paint _echoPreviewBorderPaint = Paint()
+    ..color = const Color(0xFFC084FC).withValues(alpha: 0.45)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2;
+
+  final Paint _echoPreviewChevronPaint = Paint()
+    ..color = const Color(0xFFE9D5FF).withValues(alpha: 0.75)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.0
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
 
@@ -125,7 +224,7 @@ class ShiftPuzzleGame extends FlameGame {
   }
 
   @override
-  Color backgroundColor() => const Color(0xFF090D16);
+  Color backgroundColor() => const Color(0xFF040C3A);
 
   @override
   void update(double dt) {
@@ -195,7 +294,7 @@ class ShiftPuzzleGame extends FlameGame {
     final minDim = math.min(availableWidth, availableHeight);
 
     _boardSize = (minDim * 0.92).clamp(240.0, 480.0);
-    _cellSpacing = (_boardSize * 0.015).clamp(4.0, 8.0);
+    _cellSpacing = (_boardSize * 0.022).clamp(6.0, 10.0);
     final totalSpacing = _cellSpacing * (engine.cols + 1);
     _cellSize = (_boardSize - totalSpacing) / engine.cols;
 
@@ -309,45 +408,203 @@ class ShiftPuzzleGame extends FlameGame {
 
     _calculateMetrics();
 
-    // 1. Board background container
+    // 1. Board background container with radiant neon squircle aura
     final boardRect = Rect.fromLTWH(
       _boardOrigin.dx,
       _boardOrigin.dy,
       _boardSize,
       _boardSize,
     );
-    final boardRRect = RRect.fromRectAndRadius(boardRect, const Radius.circular(16));
+    final boardRRect = RRect.fromRectAndRadius(boardRect, const Radius.circular(22));
+    canvas.drawRRect(boardRRect, _boardAuraPaint);
     canvas.drawRRect(boardRRect, _boardBgPaint);
     canvas.drawRRect(boardRRect, _boardBorderPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(boardRect.deflate(2.0), const Radius.circular(20)),
+      _boardInnerRimPaint,
+    );
 
-    // 2. Active line highlight during animation
+    final double cellRadius = _cellSize * 0.24;
+
+    // 2. Active laser shift beam & directional arrow during animation (drawn behind tiles)
     if (_isAnimating) {
+      final auraPaint = _isCurrentShiftEcho ? _activeEchoLineAuraPaint : _activeLineAuraPaint;
       final activePaint = _isCurrentShiftEcho ? _activeEchoLinePaint : _activeLinePaint;
+      final borderPaint = _isCurrentShiftEcho ? _activeEchoLineBorderPaint : _activeLineBorderPaint;
+
       if (_isRowShift) {
         final y = _boardOrigin.dy + _cellSpacing * (_animatingIndex + 1) + _cellSize * _animatingIndex;
-        final lineRect = Rect.fromLTWH(_boardOrigin.dx + _cellSpacing, y, _boardSize - _cellSpacing * 2, _cellSize);
-        final rrect = RRect.fromRectAndRadius(lineRect, const Radius.circular(10));
+        final lineRect = Rect.fromLTWH(
+          _boardOrigin.dx + _cellSpacing / 2,
+          y - 2,
+          _boardSize - _cellSpacing,
+          _cellSize + 4,
+        );
+        final rrect = RRect.fromRectAndRadius(lineRect, Radius.circular(cellRadius + 2));
+        canvas.drawRRect(rrect, auraPaint);
         canvas.drawRRect(rrect, activePaint);
-        if (_isCurrentShiftEcho) {
-          canvas.drawRRect(rrect, _activeEchoLineBorderPaint);
-        }
+        canvas.drawRRect(rrect, borderPaint);
+
+        // Kinetic laser center streak
+        final midY = y + _cellSize / 2;
+        canvas.drawLine(
+          Offset(_boardOrigin.dx + _cellSpacing, midY),
+          Offset(_boardOrigin.dx + _boardSize - _cellSpacing, midY),
+          _activeLineStreakPaint,
+        );
+
+        // Directional 3D arrow on the leading edge (matching app icon)
+        final isRight = _shiftDirection == ShiftDirection.right;
+        final arrowTipX = isRight
+            ? _boardOrigin.dx + _boardSize - _cellSpacing + 10
+            : _boardOrigin.dx + _cellSpacing - 10;
+        final arrowBaseX = isRight ? arrowTipX - 16 : arrowTipX + 16;
+        final arrowPath = Path()
+          ..moveTo(arrowTipX, midY)
+          ..lineTo(arrowBaseX, midY - 12)
+          ..lineTo(arrowBaseX + (isRight ? 5 : -5), midY)
+          ..lineTo(arrowBaseX, midY + 12)
+          ..close();
+        canvas.drawPath(arrowPath, _activeArrowPaint);
+        canvas.drawPath(arrowPath, _activeArrowRimPaint);
       } else {
         final x = _boardOrigin.dx + _cellSpacing * (_animatingIndex + 1) + _cellSize * _animatingIndex;
-        final lineRect = Rect.fromLTWH(x, _boardOrigin.dy + _cellSpacing, _cellSize, _boardSize - _cellSpacing * 2);
-        final rrect = RRect.fromRectAndRadius(lineRect, const Radius.circular(10));
+        final lineRect = Rect.fromLTWH(
+          x - 2,
+          _boardOrigin.dy + _cellSpacing / 2,
+          _cellSize + 4,
+          _boardSize - _cellSpacing,
+        );
+        final rrect = RRect.fromRectAndRadius(lineRect, Radius.circular(cellRadius + 2));
+        canvas.drawRRect(rrect, auraPaint);
         canvas.drawRRect(rrect, activePaint);
-        if (_isCurrentShiftEcho) {
-          canvas.drawRRect(rrect, _activeEchoLineBorderPaint);
-        }
+        canvas.drawRRect(rrect, borderPaint);
+
+        // Kinetic laser center streak
+        final midX = x + _cellSize / 2;
+        canvas.drawLine(
+          Offset(midX, _boardOrigin.dy + _cellSpacing),
+          Offset(midX, _boardOrigin.dy + _boardSize - _cellSpacing),
+          _activeLineStreakPaint,
+        );
+
+        // Directional 3D arrow on the leading edge (matching app icon)
+        final isDown = _shiftDirection == ShiftDirection.down;
+        final arrowTipY = isDown
+            ? _boardOrigin.dy + _boardSize - _cellSpacing + 10
+            : _boardOrigin.dy + _cellSpacing - 10;
+        final arrowBaseY = isDown ? arrowTipY - 16 : arrowTipY + 16;
+        final arrowPath = Path()
+          ..moveTo(midX, arrowTipY)
+          ..lineTo(midX - 12, arrowBaseY)
+          ..lineTo(midX, arrowBaseY + (isDown ? 5 : -5))
+          ..lineTo(midX + 12, arrowBaseY)
+          ..close();
+        canvas.drawPath(arrowPath, _activeArrowPaint);
+        canvas.drawPath(arrowPath, _activeArrowRimPaint);
       }
     }
 
-    // 3. Grid cell tiles
+    // 3. Grid cell tiles: Tactile 3D Luminous Sapphire Blue Pads (App Icon 3D Style)
     for (int r = 0; r < engine.rows; r++) {
       for (int c = 0; c < engine.cols; c++) {
         final cellRect = getCellRect(r, c);
-        final cellRRect = RRect.fromRectAndRadius(cellRect, const Radius.circular(10));
-        canvas.drawRRect(cellRRect, _cellBgPaint);
+        final bool isMoving = _isAnimating &&
+            ((_isRowShift && r == _animatingIndex) || (!_isRowShift && c == _animatingIndex));
+
+        final double depth = isMoving ? 5.5 : 4.0;
+        final double lift = isMoving ? 1.5 : 0.8;
+
+        if (isMoving) {
+          // 3D Shifting Line Pad: Elevated electric cyan button
+          // A. Soft base neon glow
+          final auraRect = cellRect.inflate(3.5);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(auraRect, Radius.circular(cellRadius + 3)),
+            _activeCellAuraPaint,
+          );
+
+          // B. Deep 3D drop shadow & extruded side skirt
+          final shadowRect = Rect.fromLTWH(cellRect.left, cellRect.top + depth, cellRect.width, cellRect.height);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(shadowRect, Radius.circular(cellRadius)),
+            _activeCellBaseShadowPaint,
+          );
+
+          final skirtRect = Rect.fromLTWH(cellRect.left, cellRect.top + depth * 0.4, cellRect.width, cellRect.height * 0.6);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(skirtRect, Radius.circular(cellRadius)),
+            _activeCellSideWallPaint,
+          );
+
+          // C. Elevated Top Face
+          final topFaceRect = Rect.fromLTWH(cellRect.left, cellRect.top - lift, cellRect.width, cellRect.height);
+          final topFaceRRect = RRect.fromRectAndRadius(topFaceRect, Radius.circular(cellRadius));
+          canvas.drawRRect(topFaceRRect, _activeCellBgPaint);
+          canvas.drawRRect(topFaceRRect, _activeCellRimPaint);
+
+          // D. Top specular highlight bevel
+          final bevelPath = Path()
+            ..moveTo(topFaceRect.left + cellRadius * 0.5, topFaceRect.top + 1.0)
+            ..lineTo(topFaceRect.right - cellRadius * 0.5, topFaceRect.top + 1.0)
+            ..moveTo(topFaceRect.left + 1.0, topFaceRect.top + cellRadius * 0.5)
+            ..lineTo(topFaceRect.left + 1.0, topFaceRect.bottom - cellRadius * 0.5);
+          canvas.drawPath(bevelPath, _activeCellTopBevelLightPaint);
+        } else {
+          // Standard 3D Sapphire Blue Pad
+          // A. Soft floor neon aura
+          final auraRect = cellRect.inflate(2.5);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(auraRect, Radius.circular(cellRadius + 2)),
+            _cellAuraPaint,
+          );
+
+          // B. 3D Drop shadow and extruded lower base riser
+          final shadowRect = Rect.fromLTWH(cellRect.left, cellRect.top + depth, cellRect.width, cellRect.height);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(shadowRect, Radius.circular(cellRadius)),
+            _cellBaseShadowPaint,
+          );
+
+          final skirtRect = Rect.fromLTWH(cellRect.left, cellRect.top + depth * 0.4, cellRect.width, cellRect.height * 0.6);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(skirtRect, Radius.circular(cellRadius)),
+            _cellSideWallPaint,
+          );
+
+          // C. Raised Top Face
+          final topFaceRect = Rect.fromLTWH(cellRect.left, cellRect.top - lift, cellRect.width, cellRect.height);
+          final topFaceRRect = RRect.fromRectAndRadius(topFaceRect, Radius.circular(cellRadius));
+          canvas.drawRRect(topFaceRRect, _cellBgPaint);
+          canvas.drawRRect(topFaceRRect, _cellRimPaint);
+
+          // D. Crisp 3D Bevels (Top/Left light, Bottom/Right shadow)
+          final topBevelPath = Path()
+            ..moveTo(topFaceRect.left + cellRadius * 0.5, topFaceRect.top + 1.0)
+            ..lineTo(topFaceRect.right - cellRadius * 0.5, topFaceRect.top + 1.0)
+            ..moveTo(topFaceRect.left + 1.0, topFaceRect.top + cellRadius * 0.5)
+            ..lineTo(topFaceRect.left + 1.0, topFaceRect.bottom - cellRadius * 0.5);
+          canvas.drawPath(topBevelPath, _cellTopBevelLightPaint);
+
+          final bottomBevelPath = Path()
+            ..moveTo(topFaceRect.left + cellRadius * 0.5, topFaceRect.bottom - 1.0)
+            ..lineTo(topFaceRect.right - cellRadius * 0.5, topFaceRect.bottom - 1.0)
+            ..moveTo(topFaceRect.right - 1.0, topFaceRect.top + cellRadius * 0.5)
+            ..lineTo(topFaceRect.right - 1.0, topFaceRect.bottom - cellRadius * 0.5);
+          canvas.drawPath(bottomBevelPath, _cellBottomBevelDarkPaint);
+
+          // E. Glossy Top Specular Sheen
+          final glossRect = Rect.fromLTWH(
+            topFaceRect.left + 2.5,
+            topFaceRect.top + 2.5,
+            topFaceRect.width - 5,
+            topFaceRect.height * 0.36,
+          );
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(glossRect, Radius.circular(cellRadius * 0.7)),
+            _cellGlossPaint,
+          );
+        }
       }
     }
 

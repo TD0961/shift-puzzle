@@ -196,9 +196,9 @@ void main() {
 
   Future<void> makeMoves(WidgetTester tester, ShiftPuzzleGame game, int count) async {
     for (int i = 0; i < count; i++) {
-      game.triggerShiftRow(0, i.isEven ? ShiftDirection.right : ShiftDirection.left);
+      game.triggerShiftRow(0, ShiftDirection.left);
+      await tester.pump(const Duration(milliseconds: 210));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 350));
 
       final nudgeFinder = find.byType(OptimalDriftNudgeDialog);
       if (nudgeFinder.evaluate().isNotEmpty) {
@@ -300,7 +300,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       progress.recordLevelCompletion(levelId: 1, moveCount: 1, stars: 3, totalLevels: 150);
-      progress.setLastPlayedLevel(1); // optimal 1, limit 4 (1 + 3)
+      progress.setLastPlayedLevel(1); // optimal 1, limit 3 (1 + 2)
 
       await tester.pumpWidget(
         MaterialApp(
@@ -318,19 +318,17 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      // Make 3 non-solving shifts
+      // Make 2 non-solving shifts
       game.triggerShiftRow(0, ShiftDirection.right); // 1
       await tester.pump(const Duration(milliseconds: 300));
       game.triggerShiftRow(0, ShiftDirection.left);  // 2
       await tester.pump(const Duration(milliseconds: 300));
-      game.triggerShiftRow(0, ShiftDirection.right); // 3
-      await tester.pump(const Duration(milliseconds: 300));
 
-      expect(game.engine.moveCount, equals(3));
+      expect(game.engine.moveCount, equals(2));
       expect(game.engine.isSolved, isFalse);
 
-      // 4th move solves the puzzle on the exact limit move (Row 2 right)
-      game.triggerShiftRow(2, ShiftDirection.right); // 4 (limit!)
+      // 3rd move solves the puzzle on the exact limit move (Row 2 right)
+      game.triggerShiftRow(2, ShiftDirection.right); // 3 (limit!)
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 500));
 
@@ -345,14 +343,14 @@ void main() {
     // ------------------------------------------------------------------------
     // 4. Move Limit Dialog & UI Input Lock
     // ------------------------------------------------------------------------
-    testWidgets('4. Reaching limit (optimal + 3) shows MoveLimitDialog and blocks board input', (tester) async {
+    testWidgets('4. Reaching limit (optimal + 2) shows MoveLimitDialog and blocks board input', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
       progress.recordLevelCompletion(levelId: 1, moveCount: 1, stars: 3, totalLevels: 150);
-      progress.setLastPlayedLevel(6); // optimal 5, normal move limit = 8
+      progress.setLastPlayedLevel(6); // optimal 5, normal move limit = 7
 
       await tester.pumpWidget(
         MaterialApp(
@@ -370,8 +368,8 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      // Make 8 shifts to reach move limit
-      await makeMoves(tester, game, 8);
+      // Make 7 shifts to reach move limit
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.byType(MoveLimitDialog), findsOneWidget);
@@ -413,7 +411,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(MoveLimitDialog), findsOneWidget);
 
@@ -425,7 +423,7 @@ void main() {
       expect(find.byType(MoveLimitDialog), findsNothing);
       expect(analytics.eventCounts['move_limit_extra_moves_granted'], equals(1));
 
-      // Exhaust all 5 bonus moves (moves 9, 10, 11, 12, 13)
+      // Exhaust all 5 bonus moves (moves 8, 9, 10, 11, 12)
       await makeMoves(tester, game, 5);
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -466,7 +464,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
       await tester.pump();
@@ -506,7 +504,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
       await tester.pump();
@@ -547,7 +545,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
       await tester.pump();
@@ -588,7 +586,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byKey(const ValueKey('watch_ad_moves_button')));
       await tester.pump();
@@ -625,7 +623,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(MoveLimitDialog), findsOneWidget);
 
@@ -652,20 +650,20 @@ void main() {
       int calculateStars(int moves, int optimal) {
         if (optimal <= 0) return 3;
         if (moves <= optimal) return 3;
-        if (moves <= optimal + 2) return 2;
+        if (moves <= optimal + 1) return 2;
         return 1;
       }
 
       // 3 Stars: moves == optimal
       expect(calculateStars(5, level.optimalMoves), equals(3));
 
-      // 2 Stars: optimal + 1, optimal + 2
+      // 2 Stars: optimal + 1
       expect(calculateStars(6, level.optimalMoves), equals(2));
-      expect(calculateStars(7, level.optimalMoves), equals(2));
 
-      // 1 Star: optimal + 3 (limit) and beyond (extended)
+      // 1 Star: optimal + 2 (limit) and beyond (extended)
+      expect(calculateStars(7, level.optimalMoves), equals(1));
       expect(calculateStars(8, level.optimalMoves), equals(1));
-      expect(calculateStars(13, level.optimalMoves), equals(1));
+      expect(calculateStars(12, level.optimalMoves), equals(1));
     });
 
     // ------------------------------------------------------------------------
@@ -696,7 +694,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(MoveLimitDialog), findsOneWidget);
 
@@ -727,11 +725,11 @@ void main() {
 
       for (final id in sampleLevels) {
         final level = LevelDefinitions.getLevel(id);
-        final normalLimit = level.optimalMoves + 3;
+        final normalLimit = level.optimalMoves + 2;
         final extendedLimit = normalLimit + 5;
 
-        expect(normalLimit, equals(level.optimalMoves + 3));
-        expect(extendedLimit, equals(level.optimalMoves + 8));
+        expect(normalLimit, equals(level.optimalMoves + 2));
+        expect(extendedLimit, equals(level.optimalMoves + 7));
 
         final engine = PuzzleEngine(level);
         expect(engine.isUndoLocked, isFalse);
@@ -767,7 +765,7 @@ void main() {
       final gameWidgetFinder = find.byWidgetPredicate((w) => w is GameWidget<ShiftPuzzleGame>);
       final game = tester.widget<GameWidget<ShiftPuzzleGame>>(gameWidgetFinder).game!;
 
-      await makeMoves(tester, game, 8);
+      await makeMoves(tester, game, 7);
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(analytics.eventCounts['move_limit_reached'], equals(1));

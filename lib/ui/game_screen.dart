@@ -76,7 +76,7 @@ class _GameScreenState extends State<GameScreen> {
 
   int get _normalMoveLimit {
     final level = LevelDefinitions.getLevel(_currentLevelId);
-    return level.optimalMoves > 0 ? level.optimalMoves + 3 : 999;
+    return level.optimalMoves > 0 ? level.optimalMoves + 2 : 999;
   }
 
   int get _currentMoveLimit => _normalMoveLimit + _extraMovesGranted;
@@ -93,7 +93,7 @@ class _GameScreenState extends State<GameScreen> {
     return _currentLevelRestartCount >= 2 ||
         _currentLevelUndoCount >= 3 ||
         _failedEchoAttempts >= 2 ||
-        (_engine.moveCount >= level.optimalMoves + 3);
+        (_engine.moveCount >= level.optimalMoves + 2);
   }
 
   void _dismissTutorial() {
@@ -183,6 +183,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _switchLevel(int levelId) {
     if (levelId < 1 || levelId > LevelDefinitions.totalLevels) return;
+    if (_progress != null && !_progress!.isLevelUnlocked(levelId)) return;
 
     final prevChapter = LevelDefinitions.getLevel(_currentLevelId).chapter;
     final newChapter = LevelDefinitions.getLevel(levelId).chapter;
@@ -1286,7 +1287,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF090D16),
+        backgroundColor: const Color(0xFF040C3A),
         body: SafeArea(
           child: Column(
             children: [
@@ -1348,11 +1349,13 @@ class _GameScreenState extends State<GameScreen> {
                 onPreviousLevel: _currentLevelId > 1
                     ? () => _switchLevel(_currentLevelId - 1)
                     : null,
-                onNextLevel: _currentLevelId < LevelDefinitions.totalLevels
+                onNextLevel: (_currentLevelId < LevelDefinitions.totalLevels &&
+                        (_progress?.isLevelUnlocked(_currentLevelId + 1) ?? false))
                     ? () => _switchLevel(_currentLevelId + 1)
                     : null,
                 hasPrevious: _currentLevelId > 1,
-                hasNext: _currentLevelId < LevelDefinitions.totalLevels,
+                hasNext: _currentLevelId < LevelDefinitions.totalLevels &&
+                    (_progress?.isLevelUnlocked(_currentLevelId + 1) ?? false),
                 showEchoButton: level.hasMemoryEcho,
                 echoStatus: _engine.echo.status,
                 echoCount: _engine.echo.length,
