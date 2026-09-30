@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$DIR/.." && pwd)"
 
 SOURCE_APK="$ROOT_DIR/build/app/outputs/flutter-apk/app-release.apk"
 QA_APK="$DIR/shift-puzzle-qa.apk"
-EXPECTED_SHA="2829b2ea9314c98d45fcd028697c5e257b8a22d7cc473598484808bcc1ac9a18"
+EXPECTED_SHA="f8ae7c7fec3ff3cd486113498645707eb8f31b21570d235905753b72cc9f5657"
 
 # 1. Verify existence
 if [ ! -f "$QA_APK" ]; then

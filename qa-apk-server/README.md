@@ -15,7 +15,7 @@ This utility solves the physical Android testing requirement when USB debugging 
 - **Source Path**: `build/app/outputs/flutter-apk/app-release.apk`
 - **Served Filename**: `shift-puzzle-qa.apk`
 - **File Size**: 50.6 MB (`50,619,900` bytes)
-- **SHA-256**: `2829b2ea9314c98d45fcd028697c5e257b8a22d7cc473598484808bcc1ac9a18`
+- **SHA-256**: `f8ae7c7fec3ff3cd486113498645707eb8f31b21570d235905753b72cc9f5657`
 - **Build Type**: Release build signed with Android Debug Key (`-PallowInsecureDebugSigning=true`)
 - **Monetization**: Configured with official Google AdMob **TEST IDs**
 - **Distribution Notice**: **QA / Sideload ONLY. Not for Google Play release.**
@@ -46,7 +46,7 @@ APK:
 shift-puzzle-qa.apk
 
 SHA-256:
-2829b2ea9314c98d45fcd028697c5e257b8a22d7cc473598484808bcc1ac9a18
+f8ae7c7fec3ff3cd486113498645707eb8f31b21570d235905753b72cc9f5657
 
 Local page:
 http://localhost:8080/
