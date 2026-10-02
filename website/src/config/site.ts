@@ -52,15 +52,17 @@ try {
 }
 
 // Resolve APK URL
+const DEFAULT_PUBLIC_APK_URL =
+  "https://github.com/TD0961/shift-puzzle/releases/download/v1.0.0/app-release.apk";
 const configuredApkUrl = process.env.NEXT_PUBLIC_APK_URL;
+const rawApkUrl =
+  configuredApkUrl && configuredApkUrl.trim().length > 0
+    ? configuredApkUrl.trim()
+    : DEFAULT_PUBLIC_APK_URL;
 const isExternal = Boolean(
-  configuredApkUrl &&
-    (configuredApkUrl.startsWith("http://") ||
-      configuredApkUrl.startsWith("https://"))
+  rawApkUrl.startsWith("http://") || rawApkUrl.startsWith("https://")
 );
-const resolvedApkUrl = configuredApkUrl && configuredApkUrl.trim().length > 0
-  ? configuredApkUrl.trim()
-  : "/app-release.apk";
+const resolvedApkUrl = rawApkUrl;
 
 export const siteConfig: SiteConfig = {
   name: "Shift Puzzle",
