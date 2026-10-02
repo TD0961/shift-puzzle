@@ -10,6 +10,8 @@ import { InstallationGuide } from "../components/InstallationGuide";
 import { QrCodeSection } from "../components/QrCodeSection";
 import { SmartLinkSection } from "../components/SmartLinkSection";
 import { TrustSection } from "../components/TrustSection";
+import { AdsterraBanner } from "../components/AdsterraBanner";
+import { AdsterraNativeBanner } from "../components/AdsterraNativeBanner";
 import { trackFunnelEvent, getAcquisitionSource } from "../lib/analytics";
 
 export default function HomePage() {
@@ -23,9 +25,16 @@ export default function HomePage() {
     <>
       <Hero />
       <GameplayDemo />
+      <div className="hidden sm:block">
+        <AdsterraBanner format="728x90" />
+      </div>
+      <div className="sm:hidden">
+        <AdsterraBanner format="300x250" />
+      </div>
       <Mechanics />
       <Features />
       <DownloadSection />
+      <AdsterraNativeBanner />
       <InstallationGuide />
       <QrCodeSection />
       <SmartLinkSection />

@@ -6,6 +6,7 @@ import { DownloadSection } from "../../components/DownloadSection";
 import { InstallationGuide } from "../../components/InstallationGuide";
 import { SmartLinkSection } from "../../components/SmartLinkSection";
 import { TrustSection } from "../../components/TrustSection";
+import { AdsterraNativeBanner } from "../../components/AdsterraNativeBanner";
 import { trackFunnelEvent, getAcquisitionSource, AcquisitionSource } from "../../lib/analytics";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
@@ -38,6 +39,7 @@ export default function DownloadPage() {
       </div>
 
       <DownloadSection />
+      <AdsterraNativeBanner />
       <InstallationGuide />
       <SmartLinkSection />
       <TrustSection />

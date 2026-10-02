@@ -82,7 +82,9 @@ export const siteConfig: SiteConfig = {
   apkSha256: "da866194f55c5552632268bbf110f375b1b913b90ebbf6614e97e9e3da5f4ef6",
   certFingerprint:
     "d2198e7313be052a9a047435cb71fa11d913f6e6bf31b62d42e74accdad85242",
-  smartLinkUrl: process.env.NEXT_PUBLIC_ADSTERRA_SMARTLINK_URL || undefined,
+  smartLinkUrl:
+    process.env.NEXT_PUBLIC_ADSTERRA_SMARTLINK_URL ||
+    "https://ardance.org/4/c70a9976026d7450e7919b3773152e55",
   analyticsEndpoint: process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT || undefined,
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "support@shiftpuzzle.app",
   socialLinks: {

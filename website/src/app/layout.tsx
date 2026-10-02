@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { siteConfig } from "../config/site";
 import { Header } from "../components/Header";
@@ -75,6 +76,13 @@ export default function RootLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        {/* Adsterra Non-Intrusive Social Bar for Mobile & Desktop Monetization */}
+        <Script
+          id="adsterra-social-bar"
+          strategy="lazyOnload"
+          data-cfasync="false"
+          src="https://bellnewyork.org/14/eb9671b04508a34f750dc9a7da106dca"
+        />
       </body>
     </html>
   );
