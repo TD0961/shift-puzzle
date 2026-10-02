@@ -8,7 +8,6 @@ import { Features } from "../components/Features";
 import { DownloadSection } from "../components/DownloadSection";
 import { InstallationGuide } from "../components/InstallationGuide";
 import { QrCodeSection } from "../components/QrCodeSection";
-import { SmartLinkSection } from "../components/SmartLinkSection";
 import { TrustSection } from "../components/TrustSection";
 import { AdsterraBanner } from "../components/AdsterraBanner";
 import { AdsterraNativeBanner } from "../components/AdsterraNativeBanner";
@@ -37,7 +36,6 @@ export default function HomePage() {
       <AdsterraNativeBanner />
       <InstallationGuide />
       <QrCodeSection />
-      <SmartLinkSection />
       <TrustSection />
     </>
   );

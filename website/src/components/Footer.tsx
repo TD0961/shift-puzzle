@@ -1,37 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Share2, Check, Copy } from "lucide-react";
 import { siteConfig } from "../config/site";
-import { trackFunnelEvent } from "../lib/analytics";
 
 export function Footer() {
-  const [copiedLink, setCopiedLink] = useState(false);
-
-  const handleShare = async () => {
-    trackFunnelEvent("share_clicked", { placement: "footer" });
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: "Shift Puzzle — Tactical Shift Puzzle Game",
-          text: "Check out Shift Puzzle for Android! 150 handcrafted levels with signature toroidal mechanics.",
-          url: siteConfig.siteUrl,
-        });
-        return;
-      } catch {
-        // User cancelled or share failed, fallback to copy
-      }
-    }
-
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(siteConfig.siteUrl);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
-    }
-  };
 
   return (
     <footer className="bg-[#05080F] border-t border-cardBorder py-14 text-slate-400 text-xs">
@@ -93,25 +67,6 @@ export function Footer() {
                 Telegram
               </a>
             )}
-
-            {/* Share Landing Page Button */}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brand/10 border border-brand/30 text-brand font-semibold hover:bg-brand/20 transition-colors"
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald" />
-                  <span className="text-emerald">Link Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share Page</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
 

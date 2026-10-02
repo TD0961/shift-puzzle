@@ -79,7 +79,7 @@ export const siteConfig: SiteConfig = {
   displayDomain: resolvedDisplayDomain,
   apkUrl: resolvedApkUrl,
   isExternalApkUrl: isExternal,
-  apkSha256: "da866194f55c5552632268bbf110f375b1b913b90ebbf6614e97e9e3da5f4ef6",
+  apkSha256: "60ffc9deeff3afdcff5f76c5d5f0ba20ed18c3bd32e49a156048fcc9c63a45b5",
   certFingerprint:
     "d2198e7313be052a9a047435cb71fa11d913f6e6bf31b62d42e74accdad85242",
   smartLinkUrl:

@@ -17,7 +17,6 @@ import 'hint_unavailable_dialog.dart';
 import 'internet_needed_dialog.dart';
 import 'move_limit_dialog.dart';
 import 'optimal_drift_nudge_dialog.dart';
-import '../core/sharing/share_service.dart';
 import 'win_dialog.dart';
 import 'widgets/tutorial_overlay.dart';
 
@@ -26,7 +25,6 @@ class GameScreen extends StatefulWidget {
   final AdService adService;
   final AnalyticsService analytics;
   final ConnectivityService connectivityService;
-  final ShareService shareService;
 
   GameScreen({
     super.key,
@@ -34,11 +32,9 @@ class GameScreen extends StatefulWidget {
     AdService? adService,
     AnalyticsService? analytics,
     ConnectivityService? connectivityService,
-    ShareService? shareService,
   })  : adService = adService ?? NoOpAdService(),
         analytics = analytics ?? const DebugAnalyticsService(),
-        connectivityService = connectivityService ?? const NetworkConnectivityService(),
-        shareService = shareService ?? const ClipboardShareService();
+        connectivityService = connectivityService ?? const NetworkConnectivityService();
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -438,32 +434,6 @@ class _GameScreenState extends State<GameScreen> {
             optimalMoves: level.optimalMoves,
             hasNextLevel: _currentLevelId < LevelDefinitions.totalLevels,
             isNewBest: isNewBest,
-            onShare: () async {
-              widget.analytics.logShareClicked(
-                placement: 'win_dialog',
-                levelId: _currentLevelId,
-              );
-              final shared = await widget.shareService.shareLevelChallenge(
-                levelId: _currentLevelId,
-                moves: _engine.moveCount,
-                stars: stars,
-              );
-              if (shared && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Challenge copied to clipboard! Share it with friends.'),
-                    duration: Duration(seconds: 2),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            onSupport: (widget.adService is BootstrapAdService &&
-                    (widget.adService as BootstrapAdService).isBootstrapLinkAvailable)
-                ? () {
-                    (widget.adService as BootstrapAdService).openBootstrapLink();
-                  }
-                : null,
             onNextLevel: () {
               Navigator.of(ctx).pop();
               _isWinDialogShowing = false;

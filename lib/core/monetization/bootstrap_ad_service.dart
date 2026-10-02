@@ -112,9 +112,15 @@ class BootstrapAdService implements AdService {
   Future<bool> showRewardedAd({
     required String placement,
     required VoidCallback onRewardEarned,
-  }) =>
-      innerAdService.showRewardedAd(
-        placement: placement,
-        onRewardEarned: onRewardEarned,
-      );
+  }) async {
+    if (isBootstrapLinkAvailable) {
+      debugPrint('[BootstrapAdService] Rewarded ad requested for $placement. Opening sponsor link in browser.');
+      await openBootstrapLink();
+    }
+    await innerAdService.showRewardedAd(
+      placement: placement,
+      onRewardEarned: onRewardEarned,
+    );
+    return true;
+  }
 }

@@ -83,6 +83,13 @@ export default function RootLayout({
           data-cfasync="false"
           src="https://bellnewyork.org/14/eb9671b04508a34f750dc9a7da106dca"
         />
+        {/* Adsterra High-CPM Popunder for Maximum Web Monetization */}
+        <Script
+          id="adsterra-popunder"
+          strategy="afterInteractive"
+          data-cfasync="false"
+          src="https://accountut.com/1/feb392524e490ede3cc77474250cabeb"
+        />
       </body>
     </html>
   );

@@ -56,7 +56,7 @@ class MonetizationConfig {
       'BOOTSTRAP_AD_LINK',
       defaultValue: String.fromEnvironment(
         'ADSTERRA_SMARTLINK_URL',
-        defaultValue: 'https://asiafilm.org/4/7659435e1d7b32ff05d5ee4dca81520e',
+        defaultValue: 'https://ardance.org/4/c70a9976026d7450e7919b3773152e55',
       ),
     );
     const isAdMobProd = bool.fromEnvironment('ADMOB_PRODUCTION_MODE', defaultValue: false);

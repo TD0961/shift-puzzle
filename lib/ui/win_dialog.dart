@@ -10,8 +10,6 @@ class WinDialog extends StatefulWidget {
   final bool isNewBest;
   final VoidCallback onNextLevel;
   final VoidCallback onReplay;
-  final VoidCallback? onShare;
-  final VoidCallback? onSupport;
 
   const WinDialog({
     super.key,
@@ -22,8 +20,6 @@ class WinDialog extends StatefulWidget {
     this.isNewBest = false,
     required this.onNextLevel,
     required this.onReplay,
-    this.onShare,
-    this.onSupport,
   });
 
   @override
@@ -244,84 +240,6 @@ class _WinDialogState extends State<WinDialog>
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-                if (widget.onShare != null) ...[
-                  const SizedBox(height: 14),
-                  BouncyButton(
-                    onPressed: widget.onShare,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
-                          width: 1.0,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.share_rounded,
-                            size: 16,
-                            color: Color(0xFF38BDF8),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Share Challenge',
-                            style: TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-                if (widget.onSupport != null) ...[
-                  const SizedBox(height: 10),
-                  BouncyButton(
-                    onPressed: widget.onSupport,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-                          width: 1.0,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.favorite_rounded,
-                            size: 15,
-                            color: Color(0xFFF59E0B),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Support Shift Puzzle',
-                            style: TextStyle(
-                              color: Color(0xFFF59E0B),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),

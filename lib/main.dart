@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'core/analytics/analytics_service.dart';
 import 'core/connectivity/connectivity_service.dart';
 import 'core/monetization/ad_service.dart';
-import 'core/sharing/share_service.dart';
 import 'core/storage/player_progress.dart';
 import 'ui/game_screen.dart';
 
@@ -19,7 +18,6 @@ void main() {
 
   const connectivityService = NetworkConnectivityService();
   final analytics = AnalyticsService.create();
-  const shareService = ClipboardShareService();
 
   final monetizationConfig = MonetizationConfig.fromEnvironment();
   final adService = kIsWeb
@@ -45,7 +43,6 @@ void main() {
     adService: adService,
     analytics: analytics,
     connectivityService: connectivityService,
-    shareService: shareService,
   ));
 
   // Initialize ad service asynchronously after Flutter UI has mounted
@@ -61,7 +58,6 @@ class ShiftPuzzleApp extends StatelessWidget {
   final AdService? adService;
   final AnalyticsService? analytics;
   final ConnectivityService? connectivityService;
-  final ShareService? shareService;
 
   const ShiftPuzzleApp({
     super.key,
@@ -69,7 +65,6 @@ class ShiftPuzzleApp extends StatelessWidget {
     this.adService,
     this.analytics,
     this.connectivityService,
-    this.shareService,
   });
 
   @override
@@ -90,7 +85,6 @@ class ShiftPuzzleApp extends StatelessWidget {
         adService: adService,
         analytics: analytics,
         connectivityService: connectivityService,
-        shareService: shareService,
       ),
     );
   }

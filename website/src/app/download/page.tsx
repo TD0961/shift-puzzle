@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { DownloadSection } from "../../components/DownloadSection";
 import { InstallationGuide } from "../../components/InstallationGuide";
-import { SmartLinkSection } from "../../components/SmartLinkSection";
 import { TrustSection } from "../../components/TrustSection";
 import { AdsterraNativeBanner } from "../../components/AdsterraNativeBanner";
 import { trackFunnelEvent, getAcquisitionSource, AcquisitionSource } from "../../lib/analytics";
@@ -41,7 +40,6 @@ export default function DownloadPage() {
       <DownloadSection />
       <AdsterraNativeBanner />
       <InstallationGuide />
-      <SmartLinkSection />
       <TrustSection />
     </div>
   );

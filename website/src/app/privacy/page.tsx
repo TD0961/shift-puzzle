@@ -113,10 +113,10 @@ export default function PrivacyPolicyPage() {
               4. Advertising &amp; Outbound Sponsor Links
             </h2>
             <p>
-              In our direct bootstrap release, we may display an optional, non-intrusive sponsor offer (&quot;Support Shift Puzzle&quot; via Adsterra SmartLink).
+              In our direct bootstrap release, we may display advertising banners or offer optional sponsored actions (such as rewarded hints or extra moves via partner sponsor links).
             </p>
             <p>
-              Tapping a sponsor link opens an external browser tab to a partner website. Clicking sponsor links is strictly voluntary and never affects puzzle progress, stars, hints, or gameplay mechanics. Clicking a sponsor link is never required to download the game. When visiting external sponsor sites, their respective privacy policies and cookie practices apply.
+              Interacting with a sponsor offer opens an external browser tab to a partner website. Visiting external sponsor sites is subject to their respective privacy policies and terms.
             </p>
           </div>
 
