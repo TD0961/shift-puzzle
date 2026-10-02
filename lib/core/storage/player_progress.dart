@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Lightweight offline player progression and settings persistence.
@@ -10,6 +11,9 @@ class PlayerProgress {
   static const String _keyStars = 'sp_stars';
   static const String _keySoundEnabled = 'sp_sound_enabled';
   static const String _keyTutorialCompleted = 'sp_tutorial_completed';
+  static const String _keyInstallationId = 'sp_installation_id';
+  static const String _keySessionCount = 'sp_session_count';
+  static const String _keyAcquisitionSource = 'sp_acquisition_source';
   static const int maxCampaignLevels = 150;
 
   final SharedPreferences _prefs;
@@ -20,6 +24,54 @@ class PlayerProgress {
   static Future<PlayerProgress> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     return PlayerProgress(prefs);
+  }
+
+  /// Generates a purely anonymous random UUID v4 identifier.
+  ///
+  /// Used solely for anonymous session correlation and retention measurement
+  /// without collecting any device identifiers, advertising IDs, or personal info.
+  static String generateAnonymousId([math.Random? random]) {
+    final rng = random ?? math.Random.secure();
+    final bytes = List<int>.generate(16, (_) => rng.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant RFC 4122
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}';
+  }
+
+  /// Anonymous random UUID v4 identifier for retention analysis without PII.
+  String get installationId {
+    final existing = _prefs.getString(_keyInstallationId);
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+    final newId = generateAnonymousId();
+    _prefs.setString(_keyInstallationId, newId);
+    return newId;
+  }
+
+  /// Number of app sessions recorded.
+  int get sessionCount => _prefs.getInt(_keySessionCount) ?? 0;
+
+  /// Whether this session is the player's very first launch.
+  bool get isFirstLaunch => sessionCount <= 1;
+
+  /// Increments and persists the session counter. Returns the new count.
+  Future<int> incrementSessionCount() async {
+    final next = sessionCount + 1;
+    await _prefs.setInt(_keySessionCount, next);
+    return next;
+  }
+
+  /// Attribution/acquisition source (e.g. 'direct', 'tiktok', 'youtube', 'telegram', etc.).
+  String get acquisitionSource {
+    return _prefs.getString(_keyAcquisitionSource) ??
+        const String.fromEnvironment('ACQUISITION_SOURCE', defaultValue: 'direct');
+  }
+
+  /// Updates the acquisition source if discovered via deep link or campaign parameter.
+  Future<void> setAcquisitionSource(String source) async {
+    await _prefs.setString(_keyAcquisitionSource, source);
   }
 
   /// Highest level unlocked (1..150, defaults to 1).
@@ -133,6 +185,10 @@ class PlayerProgress {
     await _prefs.remove(_keyCompletedLevels);
     await _prefs.remove(_keyBestMoves);
     await _prefs.remove(_keyStars);
+    await _prefs.remove(_keyTutorialCompleted);
+    await _prefs.remove(_keyInstallationId);
+    await _prefs.remove(_keySessionCount);
+    await _prefs.remove(_keyAcquisitionSource);
   }
 
   Map<String, int> _getMap(String key) {

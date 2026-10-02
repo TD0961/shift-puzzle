@@ -1,5 +1,7 @@
 package com.shiftpuzzle.shift_puzzle
 
+import android.content.Intent
+import android.net.Uri
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -21,6 +23,21 @@ class MainActivity : FlutterActivity() {
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).setMethodCallHandler { call, result ->
             when (call.method) {
+                "openUrl" -> {
+                    val url = call.argument<String>("url")
+                    if (!url.isNullOrEmpty()) {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.error("LAUNCH_FAILED", e.message, null)
+                        }
+                    } else {
+                        result.error("INVALID_URL", "URL is null or empty", null)
+                    }
+                }
                 "playTone" -> {
                     val freq = call.argument<Double>("frequency") ?: 440.0
                     val durationMs = call.argument<Double>("durationMs") ?: 100.0

@@ -34,6 +34,9 @@ class PuzzleLevel {
   /// Chapter number (1 to 10, 10 levels per chapter).
   int get chapter => ((id - 1) ~/ 10) + 1;
 
+  /// Chapter identifier alias.
+  int get chapterId => chapter;
+
   /// Thematic title of the chapter.
   String get chapterTitle {
     switch (chapter) {

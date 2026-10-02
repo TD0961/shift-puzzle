@@ -17,6 +17,7 @@ import 'hint_unavailable_dialog.dart';
 import 'internet_needed_dialog.dart';
 import 'move_limit_dialog.dart';
 import 'optimal_drift_nudge_dialog.dart';
+import '../core/sharing/share_service.dart';
 import 'win_dialog.dart';
 import 'widgets/tutorial_overlay.dart';
 
@@ -25,6 +26,7 @@ class GameScreen extends StatefulWidget {
   final AdService adService;
   final AnalyticsService analytics;
   final ConnectivityService connectivityService;
+  final ShareService shareService;
 
   GameScreen({
     super.key,
@@ -32,9 +34,11 @@ class GameScreen extends StatefulWidget {
     AdService? adService,
     AnalyticsService? analytics,
     ConnectivityService? connectivityService,
+    ShareService? shareService,
   })  : adService = adService ?? NoOpAdService(),
         analytics = analytics ?? const DebugAnalyticsService(),
-        connectivityService = connectivityService ?? const NetworkConnectivityService();
+        connectivityService = connectivityService ?? const NetworkConnectivityService(),
+        shareService = shareService ?? const ClipboardShareService();
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -60,6 +64,10 @@ class _GameScreenState extends State<GameScreen> {
         (_currentLevelId == 1 || _currentLevelId == 2) &&
         !_isTutorialDismissed;
   }
+
+  int _attemptNumber = 1;
+  int _sessionNumber = 1;
+  late final DateTime _sessionStartTime;
 
   int _currentLevelRestartCount = 0;
   int _currentLevelUndoCount = 0;
@@ -107,16 +115,19 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     if (widget.progress != null) {
       _progress = widget.progress;
       _feedback = GameFeedback(_progress!);
       _currentLevelId = _progress!.lastPlayedLevel.clamp(1, LevelDefinitions.totalLevels);
+      _setupAnalyticsAndSession(_progress!);
     } else {
       PlayerProgress.initialize().then((p) {
         if (mounted) {
           setState(() {
             _progress = p;
             _feedback = GameFeedback(_progress!);
+            _setupAnalyticsAndSession(p);
             final target = p.lastPlayedLevel.clamp(1, LevelDefinitions.totalLevels);
             if (target != _currentLevelId && p.isLevelUnlocked(target)) {
               _switchLevel(target);
@@ -131,6 +142,33 @@ class _GameScreenState extends State<GameScreen> {
     );
 
     _loadLevel(_currentLevelId);
+  }
+
+  void _setupAnalyticsAndSession(PlayerProgress p) {
+    widget.analytics.setAnonymousContext(
+      installationId: p.installationId,
+      acquisitionSource: p.acquisitionSource,
+    );
+    widget.analytics.logAppOpen(source: p.acquisitionSource);
+    if (p.isFirstLaunch) {
+      widget.analytics.logFirstLaunch(source: p.acquisitionSource);
+    }
+    p.incrementSessionCount().then((sNum) {
+      _sessionNumber = sNum;
+      widget.analytics.logSessionStart(
+        sessionNumber: _sessionNumber,
+        source: p.acquisitionSource,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.analytics.logSessionEnd(
+      sessionNumber: _sessionNumber,
+      durationSeconds: DateTime.now().difference(_sessionStartTime).inSeconds,
+    );
+    super.dispose();
   }
 
   void _loadLevel(int levelId) {
@@ -155,6 +193,11 @@ class _GameScreenState extends State<GameScreen> {
       widget.analytics.logTutorialStarted(levelId);
     }
 
+    widget.analytics.logLevelStart(
+      levelId: levelId,
+      chapterId: level.chapterId,
+      attemptNumber: _attemptNumber,
+    );
     widget.analytics.logLevelStarted(levelId);
 
     _game = ShiftPuzzleGame(
@@ -213,16 +256,23 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       _currentLevelId = levelId;
+      _attemptNumber = 1;
       _progress?.setLastPlayedLevel(levelId);
       final level = LevelDefinitions.getLevel(_currentLevelId);
       _engine = PuzzleEngine(level);
       _game.updateEngine(_engine);
     });
 
+    widget.analytics.logLevelStart(
+      levelId: levelId,
+      chapterId: LevelDefinitions.getLevel(levelId).chapterId,
+      attemptNumber: _attemptNumber,
+    );
     widget.analytics.logLevelStarted(levelId);
   }
 
   void _restartCurrentLevel() {
+    _attemptNumber++;
     _currentLevelRestartCount++;
     _optimalDriftNudgeShown = false;
     _optimalDriftDetected = false;
@@ -234,6 +284,10 @@ class _GameScreenState extends State<GameScreen> {
     _isMoveLimitDialogShowing = false;
     _undoLockExplanationShown = false;
     _isModalShowing = false;
+    widget.analytics.logLevelRestart(
+      levelId: _currentLevelId,
+      chapterId: LevelDefinitions.getLevel(_currentLevelId).chapterId,
+    );
     widget.analytics.logLevelRestarted(_currentLevelId);
     setState(() {
       _engine.reset();
@@ -325,6 +379,17 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     saveFuture.then((isNewBest) {
+      widget.analytics.logLevelComplete(
+        levelId: _currentLevelId,
+        chapterId: level.chapterId,
+        movesUsed: _engine.moveCount,
+        parMoves: level.optimalMoves,
+        stars: stars,
+      );
+      if (_currentLevelId % 10 == 0) {
+        widget.analytics.logChapterComplete(level.chapterId);
+      }
+
       widget.analytics.logLevelCompleted(
         levelId: _currentLevelId,
         moves: _engine.moveCount,
@@ -373,6 +438,32 @@ class _GameScreenState extends State<GameScreen> {
             optimalMoves: level.optimalMoves,
             hasNextLevel: _currentLevelId < LevelDefinitions.totalLevels,
             isNewBest: isNewBest,
+            onShare: () async {
+              widget.analytics.logShareClicked(
+                placement: 'win_dialog',
+                levelId: _currentLevelId,
+              );
+              final shared = await widget.shareService.shareLevelChallenge(
+                levelId: _currentLevelId,
+                moves: _engine.moveCount,
+                stars: stars,
+              );
+              if (shared && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Challenge copied to clipboard! Share it with friends.'),
+                    duration: Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            onSupport: (widget.adService is BootstrapAdService &&
+                    (widget.adService as BootstrapAdService).isBootstrapLinkAvailable)
+                ? () {
+                    (widget.adService as BootstrapAdService).openBootstrapLink();
+                  }
+                : null,
             onNextLevel: () {
               Navigator.of(ctx).pop();
               _isWinDialogShowing = false;
@@ -1001,6 +1092,11 @@ class _GameScreenState extends State<GameScreen> {
 
     if (_engine.moveCount >= _currentMoveLimit) {
       _isMoveLimitReached = true;
+      widget.analytics.logLevelFailed(
+        levelId: _currentLevelId,
+        chapterId: level.chapterId,
+        movesUsed: _engine.moveCount,
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         if (_engine.isSolved || _isWinDialogShowing) return;

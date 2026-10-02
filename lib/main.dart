@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'core/analytics/analytics_service.dart';
 import 'core/connectivity/connectivity_service.dart';
 import 'core/monetization/ad_service.dart';
+import 'core/sharing/share_service.dart';
 import 'core/storage/player_progress.dart';
 import 'ui/game_screen.dart';
 
@@ -17,10 +18,26 @@ void main() {
   ]);
 
   const connectivityService = NetworkConnectivityService();
+  final analytics = AnalyticsService.create();
+  const shareService = ClipboardShareService();
+
+  final monetizationConfig = MonetizationConfig.fromEnvironment();
   final adService = kIsWeb
-      ? NoOpAdService()
-      : AdMobAdService(connectivityService: connectivityService);
-  const analytics = DebugAnalyticsService();
+      ? NoOpAdService(policyManager: monetizationConfig.policyManager)
+      : monetizationConfig.createAdService(
+          analytics: analytics,
+          connectivityService: connectivityService,
+          urlLauncher: (url) async {
+            try {
+              const channel = MethodChannel('com.shiftpuzzle.game/audio');
+              final result = await channel.invokeMethod<bool>('openUrl', {'url': url});
+              return result ?? true;
+            } catch (e) {
+              debugPrint('[Main] Failed to open URL via MethodChannel: $e');
+              return false;
+            }
+          },
+        );
 
   // Mount Flutter UI IMMEDIATELY on the very first frame.
   // GameScreen handles asynchronous PlayerProgress initialization gracefully.
@@ -28,6 +45,7 @@ void main() {
     adService: adService,
     analytics: analytics,
     connectivityService: connectivityService,
+    shareService: shareService,
   ));
 
   // Initialize ad service asynchronously after Flutter UI has mounted
@@ -43,6 +61,7 @@ class ShiftPuzzleApp extends StatelessWidget {
   final AdService? adService;
   final AnalyticsService? analytics;
   final ConnectivityService? connectivityService;
+  final ShareService? shareService;
 
   const ShiftPuzzleApp({
     super.key,
@@ -50,6 +69,7 @@ class ShiftPuzzleApp extends StatelessWidget {
     this.adService,
     this.analytics,
     this.connectivityService,
+    this.shareService,
   });
 
   @override
@@ -70,6 +90,7 @@ class ShiftPuzzleApp extends StatelessWidget {
         adService: adService,
         analytics: analytics,
         connectivityService: connectivityService,
+        shareService: shareService,
       ),
     );
   }

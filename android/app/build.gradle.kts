@@ -71,20 +71,24 @@ android {
                     )
                 }
 
-                val keystoreFile = file(storeFilePath)
-                if (!keystoreFile.exists()) {
+                val resolvedKeystore = when {
+                    file(storeFilePath).exists() -> file(storeFilePath)
+                    rootProject.file(storeFilePath).exists() -> rootProject.file(storeFilePath)
+                    else -> rootProject.file(storeFilePath)
+                }
+                if (!resolvedKeystore.exists()) {
                     throw GradleException(
                         "\n====================================================================================\n" +
                         "FAIL-CLOSED RELEASE SIGNING ERROR:\n" +
                         "Release keystore file specified in 'android/key.properties' does not exist:\n" +
-                        "${keystoreFile.absolutePath}\n" +
+                        "${resolvedKeystore.absolutePath}\n" +
                         "====================================================================================\n"
                     )
                 }
 
                 keyAlias = keyAliasVal
                 keyPassword = keyPassVal
-                storeFile = keystoreFile
+                storeFile = resolvedKeystore
                 storePassword = storePassVal
             }
         }
@@ -93,7 +97,14 @@ android {
     buildTypes {
         release {
             val storeFilePath = keystoreProperties.getProperty("storeFile")
-            val hasCustomKeystore = keystorePropertiesFile.exists() && storeFilePath != null && file(storeFilePath).exists()
+            val resolvedKeystoreFile = if (storeFilePath != null) {
+                when {
+                    file(storeFilePath).exists() -> file(storeFilePath)
+                    rootProject.file(storeFilePath).exists() -> rootProject.file(storeFilePath)
+                    else -> null
+                }
+            } else null
+            val hasCustomKeystore = keystorePropertiesFile.exists() && resolvedKeystoreFile != null
 
             if (hasCustomKeystore) {
                 signingConfig = signingConfigs.getByName("release")

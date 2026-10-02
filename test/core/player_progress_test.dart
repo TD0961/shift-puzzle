@@ -121,6 +121,59 @@ void main() {
       // Corrupted JSON returns safe default (0 stars, no crash)
       expect(hardened.getStars(1), equals(0));
     });
+
+    test('anonymous installationId persists and generates RFC 4122 v4 UUID without PII', () {
+      final id1 = progress.installationId;
+      expect(id1, isNotEmpty);
+      // Verify standard UUID format 8-4-4-4-12
+      final uuidRegex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+      expect(uuidRegex.hasMatch(id1), isTrue);
+
+      // Same instance returns identical persisted ID
+      final id2 = progress.installationId;
+      expect(id2, equals(id1));
+    });
+
+    test('session counter and isFirstLaunch evaluate and increment accurately', () async {
+      expect(progress.sessionCount, equals(0));
+      expect(progress.isFirstLaunch, isTrue);
+
+      final s1 = await progress.incrementSessionCount();
+      expect(s1, equals(1));
+      expect(progress.sessionCount, equals(1));
+      expect(progress.isFirstLaunch, isTrue);
+
+      final s2 = await progress.incrementSessionCount();
+      expect(s2, equals(2));
+      expect(progress.sessionCount, equals(2));
+      expect(progress.isFirstLaunch, isFalse);
+    });
+
+    test('acquisition source defaults to direct and persists updates', () async {
+      expect(progress.acquisitionSource, equals('direct'));
+
+      await progress.setAcquisitionSource('tiktok');
+      expect(progress.acquisitionSource, equals('tiktok'));
+
+      await progress.setAcquisitionSource('youtube');
+      expect(progress.acquisitionSource, equals('youtube'));
+    });
+
+    test('resetAll cleanses session, installation, and tutorial markers', () async {
+      await progress.incrementSessionCount();
+      await progress.setAcquisitionSource('telegram');
+      await progress.setTutorialCompleted();
+
+      expect(progress.sessionCount, greaterThan(0));
+      expect(progress.isTutorialCompleted, isTrue);
+
+      await progress.resetAll();
+
+      expect(progress.sessionCount, equals(0));
+      expect(progress.isFirstLaunch, isTrue);
+      expect(progress.acquisitionSource, equals('direct'));
+      expect(progress.isTutorialCompleted, isFalse);
+    });
   });
 }
 

@@ -1,12 +1,32 @@
 import 'package:flutter/foundation.dart';
+import 'http_analytics_service.dart';
+
+export 'http_analytics_service.dart';
 
 /// Lightweight, privacy-first event telemetry contract.
 ///
 /// Designed to capture game design insights without collecting personal identity,
 /// device identifiers, or tracking data.
 abstract class AnalyticsService {
-  void logGameStarted({required int highestUnlockedLevel});
+  /// Injects anonymous session/attribution identifiers without personal data.
+  void setAnonymousContext({String? installationId, String? acquisitionSource});
+
+  // --- App Lifecycle Telemetry (Phase 2) ---
+  void logAppOpen({String? source});
+  void logFirstLaunch({String? source});
+  void logSessionStart({required int sessionNumber, String? source});
+  void logSessionEnd({required int sessionNumber, required int durationSeconds});
+
+  // --- Gameplay Telemetry ---
+  void logLevelStart({required int levelId, int? chapterId, int attemptNumber = 1});
   void logLevelStarted(int levelId);
+  void logLevelComplete({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+    int? parMoves,
+    int? stars,
+  });
   void logLevelCompleted({
     required int levelId,
     required int moves,
@@ -14,14 +34,41 @@ abstract class AnalyticsService {
     required int stars,
     required bool isNewBest,
   });
+  void logLevelFailed({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+  });
+  void logLevelRestart({required int levelId, int? chapterId});
   void logLevelRestarted(int levelId);
+  void logChapterComplete(int chapterId);
+  void logChapterUnlocked(int chapterId);
+  void logGameStarted({required int highestUnlockedLevel});
   void logUndoUsed(int levelId, int currentMoveCount);
   void logEchoRecorded(int levelId, int shiftCount);
   void logEchoReplayed(int levelId, int shiftCount);
-  void logChapterUnlocked(int chapterId);
   void logSoundToggled(bool enabled);
 
-  // Task 12 Monetization & Tutorial Telemetry
+  // --- Monetization Telemetry ---
+  void logInterstitialRequested(int levelId, {String? placement, String? mode});
+  void logInterstitialShown(int levelId, {String? placement, String? mode});
+  void logInterstitialFailed(int levelId, String reason, {String? placement, String? mode});
+  void logRewardedAdRequested(String placement, {int? levelId, String? mode});
+  void logRewardedAdLoaded(String placement, {int? levelId, String? mode});
+  void logRewardedAdShown(String placement, {int? levelId, String? mode});
+  void logRewardedAdCompleted(String placement, {int? levelId, String? mode});
+  void logRewardedAdFailed(String placement, String reason, {int? levelId, String? mode});
+  void logAdLoadFailed({
+    required String adType,
+    required String placement,
+    required String reason,
+  });
+
+  // --- Acquisition & Sharing Telemetry ---
+  void logShareClicked({required String placement, int? levelId});
+  void logBootstrapLinkClicked(String url, {String? placement, int? levelId});
+
+  // --- Tutorial & Hint Telemetry ---
   void logTutorialStarted(int levelId);
   void logTutorialCompleted(int levelId);
   void logHintOffered(int levelId);
@@ -36,15 +83,10 @@ abstract class AnalyticsService {
     required int optimalMoves,
     required int stars,
   });
-  void logRewardedAdRequested(String placement);
-  void logRewardedAdCompleted(String placement);
-  void logRewardedAdFailed(String placement, String reason);
   void logHintGranted(int levelId);
   void logHintUsed(int levelId);
-  void logInterstitialRequested(int levelId);
-  void logInterstitialShown(int levelId);
 
-  // Task 16 Offline & Rewarded Hint Telemetry
+  // --- Offline & Rewarded Hint Telemetry ---
   void logHintNetworkUnavailable(int levelId, {String source = 'manual_hint'});
   void logHintAdUnavailable(int levelId, {String source = 'manual_hint'});
   void logHintAdRetry(int levelId, {required String outcome, String source = 'manual_hint'});
@@ -52,7 +94,7 @@ abstract class AnalyticsService {
   void logHintAdRewarded(int levelId, {required String placement, String source = 'manual_hint'});
   void logHintAdFailed(int levelId, {required String placement, required String reason, String source = 'manual_hint'});
 
-  // Task 14 Optimal Drift Nudge Telemetry
+  // --- Optimal Drift Nudge Telemetry ---
   void logOptimalDriftDetected({
     required int levelId,
     required int chapterId,
@@ -99,7 +141,7 @@ abstract class AnalyticsService {
     required int stars,
   });
 
-  // Task 17 Move Budget & Extra Moves Telemetry
+  // --- Move Budget & Extra Moves Telemetry ---
   void logMoveLimitReached({
     required int levelId,
     required int chapterId,
@@ -145,9 +187,286 @@ abstract class AnalyticsService {
     required int optimalMoves,
     required int stars,
   });
+
+  /// Factory helper to create the appropriate analytics service based on environment.
+  ///
+  /// - Debug builds: [DebugAnalyticsService]
+  /// - Release builds without endpoint: [NoOpAnalyticsService] (100% safe, zero overhead)
+  /// - Release builds with endpoint: [LightweightHttpAnalyticsService]
+  static AnalyticsService create({
+    String? endpoint,
+    String? installationId,
+    String? acquisitionSource,
+    bool isDebug = kDebugMode,
+  }) {
+    final resolvedEndpoint = endpoint ??
+        const String.fromEnvironment('ANALYTICS_ENDPOINT', defaultValue: '');
+    if (isDebug) {
+      return const DebugAnalyticsService(enableLogging: true);
+    }
+    if (resolvedEndpoint.isNotEmpty) {
+      return LightweightHttpAnalyticsService(
+        endpoint: resolvedEndpoint,
+        initialInstallationId: installationId,
+        initialAcquisitionSource: acquisitionSource ?? 'direct',
+      );
+    }
+    return const NoOpAnalyticsService();
+  }
 }
 
-/// Production default debug logger / no-op analytics service.
+/// No-op analytics implementation for release builds when no analytics endpoint is configured.
+class NoOpAnalyticsService implements AnalyticsService {
+  const NoOpAnalyticsService();
+
+  @override
+  void setAnonymousContext({String? installationId, String? acquisitionSource}) {}
+
+  @override
+  void logAppOpen({String? source}) {}
+
+  @override
+  void logFirstLaunch({String? source}) {}
+
+  @override
+  void logSessionStart({required int sessionNumber, String? source}) {}
+
+  @override
+  void logSessionEnd({required int sessionNumber, required int durationSeconds}) {}
+
+  @override
+  void logLevelStart({required int levelId, int? chapterId, int attemptNumber = 1}) {}
+
+  @override
+  void logLevelStarted(int levelId) {}
+
+  @override
+  void logLevelComplete({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+    int? parMoves,
+    int? stars,
+  }) {}
+
+  @override
+  void logLevelCompleted({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+    required bool isNewBest,
+  }) {}
+
+  @override
+  void logLevelFailed({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+  }) {}
+
+  @override
+  void logLevelRestart({required int levelId, int? chapterId}) {}
+
+  @override
+  void logLevelRestarted(int levelId) {}
+
+  @override
+  void logChapterComplete(int chapterId) {}
+
+  @override
+  void logChapterUnlocked(int chapterId) {}
+
+  @override
+  void logGameStarted({required int highestUnlockedLevel}) {}
+
+  @override
+  void logUndoUsed(int levelId, int currentMoveCount) {}
+
+  @override
+  void logEchoRecorded(int levelId, int shiftCount) {}
+
+  @override
+  void logEchoReplayed(int levelId, int shiftCount) {}
+
+  @override
+  void logSoundToggled(bool enabled) {}
+
+  @override
+  void logInterstitialRequested(int levelId, {String? placement, String? mode}) {}
+
+  @override
+  void logInterstitialShown(int levelId, {String? placement, String? mode}) {}
+
+  @override
+  void logInterstitialFailed(int levelId, String reason, {String? placement, String? mode}) {}
+
+  @override
+  void logRewardedAdRequested(String placement, {int? levelId, String? mode}) {}
+
+  @override
+  void logRewardedAdLoaded(String placement, {int? levelId, String? mode}) {}
+
+  @override
+  void logRewardedAdShown(String placement, {int? levelId, String? mode}) {}
+
+  @override
+  void logRewardedAdCompleted(String placement, {int? levelId, String? mode}) {}
+
+  @override
+  void logRewardedAdFailed(String placement, String reason, {int? levelId, String? mode}) {}
+
+  @override
+  void logAdLoadFailed({required String adType, required String placement, required String reason}) {}
+
+  @override
+  void logShareClicked({required String placement, int? levelId}) {}
+
+  @override
+  void logBootstrapLinkClicked(String url, {String? placement, int? levelId}) {}
+
+  @override
+  void logTutorialStarted(int levelId) {}
+
+  @override
+  void logTutorialCompleted(int levelId) {}
+
+  @override
+  void logHintOffered(int levelId) {}
+
+  @override
+  void logHintButtonViewed(int levelId, {required bool isStruggling}) {}
+
+  @override
+  void logHintRequested(int levelId) {}
+
+  @override
+  void logHintCompleted(int levelId) {}
+
+  @override
+  void logHintCancelled(int levelId) {}
+
+  @override
+  void logHintFailed(int levelId, String reason) {}
+
+  @override
+  void logLevelCompletedWithHint({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  }) {}
+
+  @override
+  void logHintGranted(int levelId) {}
+
+  @override
+  void logHintUsed(int levelId) {}
+
+  @override
+  void logHintNetworkUnavailable(int levelId, {String source = 'manual_hint'}) {}
+
+  @override
+  void logHintAdUnavailable(int levelId, {String source = 'manual_hint'}) {}
+
+  @override
+  void logHintAdRetry(int levelId, {required String outcome, String source = 'manual_hint'}) {}
+
+  @override
+  void logHintAdStarted(int levelId, {required String placement, String source = 'manual_hint'}) {}
+
+  @override
+  void logHintAdRewarded(int levelId, {required String placement, String source = 'manual_hint'}) {}
+
+  @override
+  void logHintAdFailed(int levelId, {required String placement, required String reason, String source = 'manual_hint'}) {}
+
+  @override
+  void logOptimalDriftDetected({
+    required int levelId,
+    required int chapterId,
+    required bool hasMemoryEcho,
+    required int moveCount,
+    required int optimalMoves,
+  }) {}
+
+  @override
+  void logOptimalDriftNudgeShown({
+    required int levelId,
+    required int chapterId,
+    required bool hasMemoryEcho,
+    required int moveCount,
+    required int optimalMoves,
+  }) {}
+
+  @override
+  void logOptimalDriftKeepSolving({required int levelId, required int moveCount}) {}
+
+  @override
+  void logOptimalDriftHintRequested({required int levelId, required int moveCount}) {}
+
+  @override
+  void logOptimalDriftAdStarted({required int levelId, required String placement}) {}
+
+  @override
+  void logOptimalDriftAdRewarded({required int levelId, required String placement}) {}
+
+  @override
+  void logOptimalDriftAdFailed({required int levelId, required String placement, required String reason}) {}
+
+  @override
+  void logOptimalDriftHintRevealed({required int levelId, required int moveCount}) {}
+
+  @override
+  void logLevelCompletedAfterOptimalDrift({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  }) {}
+
+  @override
+  void logMoveLimitReached({
+    required int levelId,
+    required int chapterId,
+    required int optimalMoves,
+    required int normalMoveLimit,
+    required int movesUsed,
+    required bool isEchoLevel,
+    required bool isExtendedLimit,
+  }) {}
+
+  @override
+  void logMoveLimitReplaySelected({required int levelId, required int movesUsed}) {}
+
+  @override
+  void logMoveLimitExtraMovesRequested({required int levelId, required int movesUsed}) {}
+
+  @override
+  void logMoveLimitAdStarted({required int levelId, required String placement}) {}
+
+  @override
+  void logMoveLimitAdRewarded({required int levelId, required String placement}) {}
+
+  @override
+  void logMoveLimitAdFailed({required int levelId, required String placement, required String reason}) {}
+
+  @override
+  void logMoveLimitExtraMovesGranted({required int levelId, required int extraMovesGranted, required int newMoveLimit}) {}
+
+  @override
+  void logMoveLimitFinalAttemptExhausted({required int levelId, required int movesUsed}) {}
+
+  @override
+  void logLevelCompletedAfterExtraMoves({
+    required int levelId,
+    required int moves,
+    required int optimalMoves,
+    required int stars,
+  }) {}
+}
+
+/// Production default debug logger analytics service.
 class DebugAnalyticsService implements AnalyticsService {
   final bool enableLogging;
 
@@ -160,13 +479,72 @@ class DebugAnalyticsService implements AnalyticsService {
   }
 
   @override
-  void logGameStarted({required int highestUnlockedLevel}) {
-    _log('game_started', {'highest_unlocked': highestUnlockedLevel});
+  void setAnonymousContext({String? installationId, String? acquisitionSource}) {
+    _log('anonymous_context_set', {
+      'installation_id': installationId ?? 'anonymous',
+      'source': acquisitionSource ?? 'direct',
+    });
+  }
+
+  // --- App Lifecycle ---
+
+  @override
+  void logAppOpen({String? source}) {
+    _log('app_open', {'source': source ?? 'direct'});
+  }
+
+  @override
+  void logFirstLaunch({String? source}) {
+    _log('first_launch', {'source': source ?? 'direct'});
+  }
+
+  @override
+  void logSessionStart({required int sessionNumber, String? source}) {
+    _log('session_start', {
+      'session_number': sessionNumber,
+      'source': source ?? 'direct',
+    });
+  }
+
+  @override
+  void logSessionEnd({required int sessionNumber, required int durationSeconds}) {
+    _log('session_end', {
+      'session_number': sessionNumber,
+      'duration_seconds': durationSeconds,
+    });
+  }
+
+  // --- Gameplay ---
+
+  @override
+  void logLevelStart({required int levelId, int? chapterId, int attemptNumber = 1}) {
+    _log('level_start', {
+      'level_id': levelId,
+      'chapter_id': chapterId ?? ((levelId - 1) ~/ 10) + 1,
+      'attempt_number': attemptNumber,
+    });
   }
 
   @override
   void logLevelStarted(int levelId) {
-    _log('level_started', {'level_id': levelId});
+    logLevelStart(levelId: levelId);
+  }
+
+  @override
+  void logLevelComplete({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+    int? parMoves,
+    int? stars,
+  }) {
+    _log('level_complete', {
+      'level_id': levelId,
+      'chapter_id': chapterId ?? ((levelId - 1) ~/ 10) + 1,
+      'moves_used': movesUsed,
+      'par_moves': parMoves ?? 0,
+      'stars': stars ?? 0,
+    });
   }
 
   @override
@@ -188,8 +566,44 @@ class DebugAnalyticsService implements AnalyticsService {
   }
 
   @override
+  void logLevelFailed({
+    required int levelId,
+    int? chapterId,
+    required int movesUsed,
+  }) {
+    _log('level_failed', {
+      'level_id': levelId,
+      'chapter_id': chapterId ?? ((levelId - 1) ~/ 10) + 1,
+      'moves_used': movesUsed,
+    });
+  }
+
+  @override
+  void logLevelRestart({required int levelId, int? chapterId}) {
+    _log('level_restart', {
+      'level_id': levelId,
+      'chapter_id': chapterId ?? ((levelId - 1) ~/ 10) + 1,
+    });
+  }
+
+  @override
   void logLevelRestarted(int levelId) {
-    _log('level_restarted', {'level_id': levelId});
+    logLevelRestart(levelId: levelId);
+  }
+
+  @override
+  void logChapterComplete(int chapterId) {
+    _log('chapter_complete', {'chapter_id': chapterId});
+  }
+
+  @override
+  void logChapterUnlocked(int chapterId) {
+    _log('chapter_unlocked', {'chapter_id': chapterId});
+  }
+
+  @override
+  void logGameStarted({required int highestUnlockedLevel}) {
+    _log('game_started', {'highest_unlocked': highestUnlockedLevel});
   }
 
   @override
@@ -208,11 +622,6 @@ class DebugAnalyticsService implements AnalyticsService {
   }
 
   @override
-  void logChapterUnlocked(int chapterId) {
-    _log('chapter_unlocked', {'chapter_id': chapterId});
-  }
-
-  @override
   void logSoundToggled(bool enabled) {
     _log('sound_toggled', {'enabled': enabled});
   }
@@ -226,6 +635,116 @@ class DebugAnalyticsService implements AnalyticsService {
   void logTutorialCompleted(int levelId) {
     _log('tutorial_completed', {'level_id': levelId});
   }
+
+  // --- Monetization ---
+
+  @override
+  void logInterstitialRequested(int levelId, {String? placement, String? mode}) {
+    _log('interstitial_requested', {
+      'level_id': levelId,
+      'placement': placement ?? 'level_complete',
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logInterstitialShown(int levelId, {String? placement, String? mode}) {
+    _log('interstitial_shown', {
+      'level_id': levelId,
+      'placement': placement ?? 'level_complete',
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logInterstitialFailed(int levelId, String reason, {String? placement, String? mode}) {
+    _log('interstitial_failed', {
+      'level_id': levelId,
+      'reason': reason,
+      'placement': placement ?? 'level_complete',
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logRewardedAdRequested(String placement, {int? levelId, String? mode}) {
+    _log('rewarded_requested', {
+      'placement': placement,
+      'level_id': levelId ?? 0,
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logRewardedAdLoaded(String placement, {int? levelId, String? mode}) {
+    _log('rewarded_loaded', {
+      'placement': placement,
+      'level_id': levelId ?? 0,
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logRewardedAdShown(String placement, {int? levelId, String? mode}) {
+    _log('rewarded_shown', {
+      'placement': placement,
+      'level_id': levelId ?? 0,
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logRewardedAdCompleted(String placement, {int? levelId, String? mode}) {
+    _log('rewarded_completed', {
+      'placement': placement,
+      'level_id': levelId ?? 0,
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logRewardedAdFailed(String placement, String reason, {int? levelId, String? mode}) {
+    _log('rewarded_failed', {
+      'placement': placement,
+      'reason': reason,
+      'level_id': levelId ?? 0,
+      'mode': mode ?? 'default',
+    });
+  }
+
+  @override
+  void logAdLoadFailed({
+    required String adType,
+    required String placement,
+    required String reason,
+  }) {
+    _log('ad_load_failed', {
+      'ad_type': adType,
+      'placement': placement,
+      'reason': reason,
+    });
+  }
+
+  // --- Acquisition & Sharing ---
+
+  @override
+  void logShareClicked({required String placement, int? levelId}) {
+    _log('share_clicked', {
+      'placement': placement,
+      'level_id': levelId ?? 0,
+    });
+  }
+
+  @override
+  void logBootstrapLinkClicked(String url, {String? placement, int? levelId}) {
+    _log('bootstrap_link_clicked', {
+      'url': url,
+      'placement': placement ?? 'bootstrap_banner',
+      'level_id': levelId ?? 0,
+    });
+  }
+
+  // --- Hints & Special Moves ---
 
   @override
   void logHintOffered(int levelId) {
@@ -273,21 +792,6 @@ class DebugAnalyticsService implements AnalyticsService {
   }
 
   @override
-  void logRewardedAdRequested(String placement) {
-    _log('rewarded_ad_requested', {'placement': placement});
-  }
-
-  @override
-  void logRewardedAdCompleted(String placement) {
-    _log('rewarded_ad_completed', {'placement': placement});
-  }
-
-  @override
-  void logRewardedAdFailed(String placement, String reason) {
-    _log('rewarded_ad_failed', {'placement': placement, 'reason': reason});
-  }
-
-  @override
   void logHintGranted(int levelId) {
     _log('hint_granted', {'level_id': levelId});
   }
@@ -297,17 +801,6 @@ class DebugAnalyticsService implements AnalyticsService {
     _log('hint_used', {'level_id': levelId});
   }
 
-  @override
-  void logInterstitialRequested(int levelId) {
-    _log('interstitial_requested', {'level_id': levelId});
-  }
-
-  @override
-  void logInterstitialShown(int levelId) {
-    _log('interstitial_shown', {'level_id': levelId});
-  }
-
-  // Task 16 Offline & Rewarded Hint Telemetry
   @override
   void logHintNetworkUnavailable(int levelId, {String source = 'manual_hint'}) {
     _log('hint_network_unavailable', {'level_id': levelId, 'source': source});

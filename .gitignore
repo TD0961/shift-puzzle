@@ -57,6 +57,8 @@ app.*.map.json
 secrets.json
 secrets/
 .env*
+!.env.example
+!website/.env.example
 
 
 # Widget Preview related
@@ -66,4 +68,10 @@ secrets/
 *.apk
 *.aab
 qa-apk-server/*.apk
+
+# Static landing page website
+website/node_modules/
+website/.next/
+website/out/
+website/.env*.local
 
