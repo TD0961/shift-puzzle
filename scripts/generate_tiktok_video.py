@@ -16,7 +16,7 @@ import os
 import subprocess
 import wave
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import imageio_ffmpeg
 
 OUTPUT_DIR = "assets/branding/social"
@@ -27,6 +27,47 @@ VOICE_DIR = "/tmp/tiktok_voice_clips"
 WIDTH, HEIGHT = 1080, 1920
 FPS = 30
 TOTAL_FRAMES = 945  # 31.5 seconds
+
+# Board Layout Geometry matching in-game specifications
+GRID_SIZE = 800
+CELL_GAP = 18
+CELL_W = (GRID_SIZE - CELL_GAP * 4) / 5  # 145.6px
+GRID_X0 = (WIDTH - GRID_SIZE) // 2
+GRID_Y0 = 430
+BOARD_PAD = 22
+BX0 = GRID_X0 - BOARD_PAD
+BY0 = GRID_Y0 - BOARD_PAD
+BX1 = GRID_X0 + GRID_SIZE + BOARD_PAD
+BY1 = GRID_Y0 + GRID_SIZE + BOARD_PAD
+
+# Precompute Radiant Neon Board Aura (Skia MaskFilter.blur match: Color(0xFF0066FF) + Color(0xFF00E5FF))
+def create_board_aura():
+    aura_img = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    aura_draw = ImageDraw.Draw(aura_img)
+    # Deep wide electric blue aura (Color(0xFF0066FF))
+    aura_draw.rounded_rectangle(
+        [BX0 - 15, BY0 - 15, BX1 + 15, BY1 + 15],
+        radius=36,
+        fill=(0, 102, 255, 160),
+        outline=(0, 229, 255, 220),
+        width=8
+    )
+    aura_blur = aura_img.filter(ImageFilter.GaussianBlur(28))
+
+    # Secondary tight electric cyan aura
+    aura_tight = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    tight_draw = ImageDraw.Draw(aura_tight)
+    tight_draw.rounded_rectangle(
+        [BX0 - 4, BY0 - 4, BX1 + 4, BY1 + 4],
+        radius=32,
+        outline=(0, 229, 255, 230),
+        width=6
+    )
+    aura_tight_blur = aura_tight.filter(ImageFilter.GaussianBlur(10))
+
+    return Image.alpha_composite(aura_blur, aura_tight_blur)
+
+BOARD_AURA_LAYER = create_board_aura()
 
 def get_font(size, bold=True):
     paths = [
@@ -148,12 +189,7 @@ def generate_audio(duration_sec):
         wf.setframerate(sample_rate)
         wf.writeframes(audio_int16.tobytes())
 
-def draw_vector_gold_star(draw, cx, cy, r_outer, r_inner, fill_color, outline_color, halo=True):
-    if halo:
-        for hr in range(int(r_outer * 1.45), int(r_outer), -3):
-            alpha = int(40 * (1.0 - (hr - r_outer) / (r_outer * 0.45)))
-            draw.ellipse([cx - hr, cy - hr, cx + hr, cy + hr], fill=(251, 191, 36, alpha))
-
+def draw_vector_gold_star(draw, cx, cy, r_outer, r_inner, fill_color, outline_color):
     points = []
     for i in range(10):
         r = r_outer if i % 2 == 0 else r_inner
@@ -167,19 +203,11 @@ def render_frame(f_idx):
     img = Image.new("RGBA", (WIDTH, HEIGHT), (2, 6, 23, 255))
     draw = ImageDraw.Draw(img)
 
-    # Ambient sapphire lighting
-    for r in range(540, 0, -35):
-        alpha = int(14 * (1.0 - (r / 540)))
-        draw.ellipse([WIDTH // 2 - r, 820 - r, WIDTH // 2 + r, 820 + r], fill=(13, 31, 75, alpha))
-    for r in range(280, 0, -25):
-        alpha = int(18 * (1.0 - (r / 280)))
-        draw.ellipse([WIDTH // 2 - r, 820 - r, WIDTH // 2 + r, 820 + r], fill=(0, 229, 255, alpha))
-
     # 1. Android Top Status Bar (from screenshot: 5:07 AM, 4G, 58%)
     stat_y = 35
     draw.text((60, stat_y), "5:07 AM", font=FONT_STATUS, fill=(240, 245, 255, 230))
     # Right status icons
-    stat_r_x = WIDTH - 240
+    stat_r_x = WIDTH - 260
     draw.text((stat_r_x, stat_y), "0.00 K/s  4G  58%", font=FONT_STATUS, fill=(240, 245, 255, 210))
 
     # 2. In-Game GameHeader (matching screenshot)
@@ -236,37 +264,50 @@ def render_frame(f_idx):
     card_h = 115
     draw.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + card_h], radius=22, fill=(30, 41, 59, 240), outline=(51, 65, 85, 200), width=2)
     # Line 1: 'Moves: ' + cur_moves + ' / 7'
-    draw.text((card_x + 36, card_y + 18), "Moves: ", font=FONT_MOVES_LBL, fill=(148, 163, 184, 255))
-    draw.text((card_x + 115, card_y + 14), str(cur_moves), font=FONT_MOVES_NUM, fill=(255, 255, 255, 255))
-    draw.text((card_x + 142, card_y + 18), " / 7", font=FONT_MOVES_LBL, fill=(148, 163, 184, 255))
+    m_lbl = "Moves: "
+    bb_ml = FONT_MOVES_LBL.getbbox(m_lbl)
+    ml_w = bb_ml[2] - bb_ml[0]
+    n_str = str(cur_moves)
+    bb_ns = FONT_MOVES_NUM.getbbox(n_str)
+    ns_w = bb_ns[2] - bb_ns[0]
+    s_str = " / 7"
+    bb_ss = FONT_MOVES_LBL.getbbox(s_str)
+    ss_w = bb_ss[2] - bb_ss[0]
+
+    tot_w = ml_w + ns_w + ss_w
+    sx = card_x + (card_w - tot_w) // 2
+    draw.text((sx, card_y + 18), m_lbl, font=FONT_MOVES_LBL, fill=(148, 163, 184, 255))
+    draw.text((sx + ml_w, card_y + 14), n_str, font=FONT_MOVES_NUM, fill=(255, 255, 255, 255))
+    draw.text((sx + ml_w + ns_w, card_y + 18), s_str, font=FONT_MOVES_LBL, fill=(148, 163, 184, 255))
     # Line 2: 'Limit: X / 9'
-    draw.text((card_x + 75, card_y + 64), f"Limit: {cur_moves} / 9", font=FONT_STATUS, fill=(100, 116, 139, 255))
+    lim_str = f"Limit: {cur_moves} / 9"
+    bb_lim = FONT_STATUS.getbbox(lim_str)
+    lim_w = bb_lim[2] - bb_lim[0]
+    draw.text((card_x + (card_w - lim_w) // 2, card_y + 64), lim_str, font=FONT_STATUS, fill=(100, 116, 139, 255))
 
-    # 3. Main 5x5 Board Layout
-    grid_size = 800
-    cell_gap = 18
-    cell_w = (grid_size - cell_gap * 4) / 5  # 145.6px
-    grid_x0 = (WIDTH - grid_size) // 2
-    grid_y0 = 430
+    # 3. Main 5x5 Board Layout with Radiant Neon Blue Aura & Double Neon Border
+    grid_size = GRID_SIZE
+    cell_gap = CELL_GAP
+    cell_w = CELL_W
+    grid_x0 = GRID_X0
+    grid_y0 = GRID_Y0
 
-    # Outer Board Frame: Glowing Neon Cyan double border (matching screenshot)
-    board_pad = 22
-    # Outer glow
-    for gr in range(24, 0, -4):
-        alpha = int(25 * (1.0 - gr / 24))
-        draw.rounded_rectangle(
-            [grid_x0 - board_pad - gr, grid_y0 - board_pad - gr, grid_x0 + grid_size + board_pad + gr, grid_y0 + grid_size + board_pad + gr],
-            radius=34,
-            outline=(0, 229, 255, alpha),
-            width=2
-        )
-    # Main neon border
+    img = Image.alpha_composite(img, BOARD_AURA_LAYER)
+    draw = ImageDraw.Draw(img)
+
+    # Board Background & Borders (Matching Color(0xFF02071E), Color(0xFF1E60FF), Color(0xFF00E5FF))
     draw.rounded_rectangle(
-        [grid_x0 - board_pad, grid_y0 - board_pad, grid_x0 + grid_size + board_pad, grid_y0 + grid_size + board_pad],
-        radius=30,
-        fill=(8, 16, 40, 250),
-        outline=(0, 229, 255, 240),
+        [BX0, BY0, BX1, BY1],
+        radius=26,
+        fill=(2, 7, 30, 255),
+        outline=(30, 96, 255, 255),
         width=3
+    )
+    draw.rounded_rectangle(
+        [BX0 + 3, BY0 + 3, BX1 - 3, BY1 - 3],
+        radius=23,
+        outline=(0, 229, 255, 140),
+        width=1
     )
 
     # Piece position states
@@ -295,7 +336,7 @@ def render_frame(f_idx):
         p = ease(min(1.0, (t_sec - 11.4) / 0.8))
         a_c = 0.0 + p * 1.0
         r_c = 1.0 + p * 1.0
-        finger_pos = (grid_x0 + (0.5 + p) * (cell_w + cell_gap), grid_y0 + 2 * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + (0.5 + p) * (CELL_W + CELL_GAP), GRID_Y0 + 2 * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 12.6 <= t_sec:
         a_c = 1.0
         r_c = 2.0
@@ -306,7 +347,7 @@ def render_frame(f_idx):
         active_col = 2
         p = ease(min(1.0, (t_sec - 13.0) / 0.8))
         r_r = 2.0 - p * 1.0
-        finger_pos = (grid_x0 + 2 * (cell_w + cell_gap) + cell_w / 2, grid_y0 + (2.0 - p) * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + 2 * (CELL_W + CELL_GAP) + CELL_W / 2, GRID_Y0 + (2.0 - p) * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 14.2 <= t_sec:
         r_r = 1.0
 
@@ -316,7 +357,7 @@ def render_frame(f_idx):
         active_col = 3
         p = ease(min(1.0, (t_sec - 14.6) / 0.8))
         c_r = 1.0 + p * 1.0
-        finger_pos = (grid_x0 + 3 * (cell_w + cell_gap) + cell_w / 2, grid_y0 + (1.0 + p) * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + 3 * (CELL_W + CELL_GAP) + CELL_W / 2, GRID_Y0 + (1.0 + p) * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 15.8 <= t_sec:
         c_r = 2.0
 
@@ -328,7 +369,7 @@ def render_frame(f_idx):
         p = ease(min(1.0, (t_sec - 16.2) / 0.8))
         c_c = 3.0 + p * 1.0
         a_c = 1.0 + p * 1.0
-        finger_pos = (grid_x0 + (3.0 + p) * (cell_w + cell_gap), grid_y0 + 2 * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + (3.0 + p) * (CELL_W + CELL_GAP), GRID_Y0 + 2 * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 17.6 <= t_sec:
         c_c = 4.0
         a_c = 2.0
@@ -339,7 +380,7 @@ def render_frame(f_idx):
         active_col = 0
         p = ease(min(1.0, (t_sec - 18.6) / 0.7))
         v_r = 3.0 - p * 1.0
-        finger_pos = (grid_x0 + 0 * (cell_w + cell_gap) + cell_w / 2, grid_y0 + (3.0 - p) * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + 0 * (CELL_W + CELL_GAP) + CELL_W / 2, GRID_Y0 + (3.0 - p) * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 19.6 <= t_sec:
         v_r = 2.0
 
@@ -350,7 +391,7 @@ def render_frame(f_idx):
         p = ease(min(1.0, (t_sec - 20.0) / 0.7))
         r_r = 1.0 - p * 1.0
         a_r = 2.0 - p * 1.0
-        finger_pos = (grid_x0 + 2 * (cell_w + cell_gap) + cell_w / 2, grid_y0 + (1.5 - p) * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + 2 * (CELL_W + CELL_GAP) + CELL_W / 2, GRID_Y0 + (1.5 - p) * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 21.0 <= t_sec:
         r_r = 0.0
         a_r = 1.0
@@ -364,35 +405,53 @@ def render_frame(f_idx):
         p = ease(min(1.0, (t_sec - 21.6) / 0.8))
         a_r = 1.0 - p * 1.0
         r_r = 0.0 - p * 1.0
-        finger_pos = (grid_x0 + 2 * (cell_w + cell_gap) + cell_w / 2, grid_y0 + (1.0 - p) * (cell_w + cell_gap) + cell_w / 2)
+        finger_pos = (GRID_X0 + 2 * (CELL_W + CELL_GAP) + CELL_W / 2, GRID_Y0 + (1.0 - p) * (CELL_W + CELL_GAP) + CELL_W / 2)
     elif 22.8 <= t_sec:
         a_r = 0.0
         r_r = 4.0
 
-    # Draw Highlight Track if active
+    # Draw Laser Shift Beam Behind Active Row / Column
     if active_row is not None:
-        ry = grid_y0 + active_row * (cell_w + cell_gap)
-        draw.rounded_rectangle([grid_x0 - 10, ry - 6, grid_x0 + grid_size + 10, ry + cell_w + 6], radius=18, fill=(56, 189, 248, 30), outline=(56, 189, 248, 140), width=2)
+        ry = GRID_Y0 + active_row * (CELL_W + CELL_GAP)
+        draw.rounded_rectangle([GRID_X0 - 14, ry - 5, GRID_X0 + GRID_SIZE + 14, ry + CELL_W + 5], radius=20, fill=(0, 229, 255, 45), outline=(0, 229, 255, 210), width=2)
+        midY = ry + CELL_W / 2
+        draw.line([GRID_X0, midY, GRID_X0 + GRID_SIZE, midY], fill=(0, 229, 255, 220), width=2)
     elif active_col is not None:
-        cx = grid_x0 + active_col * (cell_w + cell_gap)
-        draw.rounded_rectangle([cx - 6, grid_y0 - 10, cx + cell_w + 6, grid_y0 + grid_size + 10], radius=18, fill=(56, 189, 248, 30), outline=(56, 189, 248, 140), width=2)
+        cx = GRID_X0 + active_col * (CELL_W + CELL_GAP)
+        draw.rounded_rectangle([cx - 5, GRID_Y0 - 14, cx + CELL_W + 5, GRID_Y0 + GRID_SIZE + 14], radius=20, fill=(0, 229, 255, 45), outline=(0, 229, 255, 210), width=2)
+        midX = cx + CELL_W / 2
+        draw.line([midX, GRID_Y0, midX, GRID_Y0 + GRID_SIZE], fill=(0, 229, 255, 220), width=2)
 
-    # 4. Draw 5x5 Beveled Grid Cells & Targets (exact screenshot match)
+    # 4. Draw 5x5 Tactile 3D Luminous Sapphire Blue Pads & Targets (exact screenshot match)
+    cell_radius = 24
     for r in range(5):
         for c in range(5):
-            x = grid_x0 + c * (cell_w + cell_gap)
-            y = grid_y0 + r * (cell_w + cell_gap)
+            x = GRID_X0 + c * (CELL_W + CELL_GAP)
+            y = GRID_Y0 + r * (CELL_W + CELL_GAP)
+            is_active_cell = (active_row == r) or (active_col == c)
 
-            # 3D Beveled Cell Slot
-            # Dark outer
-            draw.rounded_rectangle([x, y, x + cell_w, y + cell_w], radius=24, fill=(18, 30, 60, 255), outline=(32, 50, 92, 255), width=2)
-            # Top-left bevel highlight
-            draw.line([x + 12, y + 3, x + cell_w - 12, y + 3], fill=(45, 75, 130, 200), width=2)
-            # Inset center
-            draw.rounded_rectangle([x + 7, y + 7, x + cell_w - 7, y + cell_w - 7], radius=18, fill=(14, 24, 50, 255))
+            if is_active_cell:
+                # Active shifting pad (Elevated Electric Cyan #0091EA / #E0F7FA)
+                draw.rounded_rectangle([x, y + 6, x + CELL_W, y + CELL_W + 6], radius=cell_radius, fill=(1, 10, 30, 255))
+                draw.rounded_rectangle([x, y + 2, x + CELL_W, y + CELL_W + 4], radius=cell_radius, fill=(0, 91, 148, 255))
+                draw.rounded_rectangle([x, y, x + CELL_W, y + CELL_W], radius=cell_radius, fill=(0, 145, 234, 255))
+                draw.rounded_rectangle([x, y, x + CELL_W, y + CELL_W], radius=cell_radius, outline=(224, 247, 250, 255), width=2)
+                draw.line([x + cell_radius * 0.7, y + 1.5, x + CELL_W - cell_radius * 0.7, y + 1.5], fill=(255, 255, 255, 240), width=2)
+                draw.line([x + 1.5, y + cell_radius * 0.7, x + 1.5, y + CELL_W - cell_radius * 0.7], fill=(255, 255, 255, 240), width=2)
+            else:
+                # Tactile 3D Luminous Sapphire Blue Pad (App Icon Match #0C2A78 / #2E75FF)
+                draw.rounded_rectangle([x, y + 5, x + CELL_W, y + CELL_W + 5], radius=cell_radius, fill=(3, 10, 32, 255))
+                draw.rounded_rectangle([x, y + 2, x + CELL_W, y + CELL_W + 4], radius=cell_radius, fill=(8, 28, 80, 255))
+                draw.rounded_rectangle([x, y, x + CELL_W, y + CELL_W], radius=cell_radius, fill=(18, 54, 136, 255))
+                draw.rounded_rectangle([x + 3, y + 3, x + CELL_W - 3, y + CELL_W - 3], radius=cell_radius - 2, fill=(14, 45, 118, 255))
+                draw.rounded_rectangle([x, y, x + CELL_W, y + CELL_W], radius=cell_radius, outline=(56, 130, 255, 255), width=2)
+                draw.line([x + cell_radius * 0.7, y + 1.5, x + CELL_W - cell_radius * 0.7, y + 1.5], fill=(130, 195, 255, 230), width=2)
+                draw.line([x + 1.5, y + cell_radius * 0.7, x + 1.5, y + CELL_W - cell_radius * 0.7], fill=(130, 195, 255, 230), width=2)
+                draw.line([x + cell_radius * 0.7, y + CELL_W - 1.5, x + CELL_W - cell_radius * 0.7, y + CELL_W - 1.5], fill=(4, 14, 44, 255), width=2)
+                draw.line([x + CELL_W - 1.5, y + cell_radius * 0.7, x + CELL_W - 1.5, y + CELL_W - cell_radius * 0.7], fill=(4, 14, 44, 255), width=2)
 
             # Target Rendering
-            cx_c, cy_c = x + cell_w / 2, y + cell_w / 2
+            cx_c, cy_c = x + CELL_W / 2, y + CELL_W / 2
             pulse = 1.0 + 0.05 * math.sin(t_sec * 5.0)
 
             # (0, 2): Amber Target — concentric nested gold diamonds + glowing center dot
@@ -604,8 +663,7 @@ def render_frame(f_idx):
                     draw_vector_gold_star(
                         draw, scx, star_base_y, r_out, r_in,
                         fill_color=(251, 191, 36, 255),
-                        outline_color=(254, 240, 138, 255),
-                        halo=True
+                        outline_color=(254, 240, 138, 255)
                     )
                 else:
                     # Empty slate star outline
@@ -614,8 +672,7 @@ def render_frame(f_idx):
                     draw_vector_gold_star(
                         draw, scx, star_base_y, r_out, r_in,
                         fill_color=(20, 30, 52, 255),
-                        outline_color=(51, 65, 85, 255),
-                        halo=False
+                        outline_color=(51, 65, 85, 255)
                     )
 
             # 'PERFECT!' rating label (exact match in Cyan/Gold)
