@@ -96,6 +96,42 @@ FONT_WIN_OPT = get_font(22, bold=False)
 FONT_WIN_BTN = get_font(26, bold=True)
 FONT_SUBTITLE = get_font(30, bold=True)
 FONT_SUBTITLE_HIGHLIGHT = get_font(32, bold=True)
+FONT_HERO_TAG = get_font(22, bold=True)
+FONT_HERO_TITLE = get_font(54, bold=True)
+FONT_HERO_SUB = get_font(26, bold=False)
+FONT_HERO_PILL = get_font(26, bold=True)
+FONT_HERO_BTN = get_font(32, bold=True)
+FONT_HERO_BTN_SUB = get_font(22, bold=False)
+FONT_HERO_CTA = get_font(28, bold=True)
+
+def load_app_icon():
+    icon_path = "assets/branding/app_icon/shift_puzzle_icon_512.png"
+    if os.path.exists(icon_path):
+        icon = Image.open(icon_path).convert("RGBA")
+        icon = icon.resize((220, 220), Image.Resampling.LANCZOS)
+        mask = Image.new("L", (220, 220), 0)
+        md = ImageDraw.Draw(mask)
+        md.rounded_rectangle([0, 0, 220, 220], radius=50, fill=255)
+        icon.putalpha(mask)
+        return icon
+    return None
+
+APP_ICON_220 = load_app_icon()
+
+def create_icon_aura():
+    aura = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(aura)
+    cx, cy = WIDTH // 2, 540
+    ad.rounded_rectangle(
+        [cx - 125, cy - 125, cx + 125, cy + 125],
+        radius=58,
+        fill=(0, 102, 255, 150),
+        outline=(0, 229, 255, 240),
+        width=6
+    )
+    return aura.filter(ImageFilter.GaussianBlur(30))
+
+ICON_AURA_LAYER = create_icon_aura()
 
 # Generate synchronized audio: voiceover + tactile swipes + lock chimes + victory chord
 def generate_audio(duration_sec):
@@ -172,9 +208,22 @@ def generate_audio(duration_sec):
         (19.3, "swipe"),
         (20.2, "lock"),  # Emerald locks in
         (20.8, "swipe"),
-        (21.8, "lock"),  # Violet locks in
-        (22.4, "win")    # Victory chord
+        (21.8, "lock"),      # Violet locks in
+        (22.4, "win"),       # Victory chord
+        (26.8, "end_card")   # Hero End Card reveal shimmer
     ]
+
+    def add_end_card_chime(t_sec):
+        idx = int(t_sec * sample_rate)
+        length = int(1.2 * sample_rate)
+        t = np.linspace(0, 1.2, length, endpoint=False)
+        tones = [587.33, 880.00, 1174.66, 1760.00]
+        tone = np.zeros(length, dtype=np.float32)
+        for i, f in enumerate(tones):
+            env = np.exp(-t * (1.8 + i * 0.4))
+            tone += (0.16 / len(tones)) * np.sin(2 * np.pi * f * t) * env
+        end_idx = min(idx + length, total_samples)
+        audio[idx:end_idx] += tone[:end_idx - idx]
 
     for t, stype in sfx_events:
         if stype == "swipe":
@@ -183,6 +232,8 @@ def generate_audio(duration_sec):
             add_lock(t, 987.77)
         elif stype == "win":
             add_win_chord(t)
+        elif stype == "end_card":
+            add_end_card_chime(t)
 
     audio = np.clip(audio, -1.0, 1.0)
     audio_int16 = (audio * 32767).astype(np.int16)
@@ -508,10 +559,13 @@ def render_frame(f_idx):
     draw_piece(e_r, e_c, "emerald")
     draw_piece(v_r, v_c, "violet")
 
-    # Animated finger indicator during touch moves
+    # Animated tactile finger indicator during touch moves
     if finger_pos is not None:
         fx, fy = finger_pos
-        draw.ellipse([fx - 24, fy - 24, fx + 24, fy + 24], fill=(255, 255, 255, 170), outline=(56, 189, 248, 255), width=3)
+        ripple_r = 30 + int(10 * math.sin(t_sec * 14.0))
+        draw.ellipse([fx - ripple_r, fy - ripple_r, fx + ripple_r, fy + ripple_r], outline=(56, 189, 248, 140), width=2)
+        draw.ellipse([fx - 22, fy - 22, fx + 22, fy + 22], fill=(255, 255, 255, 130), outline=(0, 229, 255, 230), width=2)
+        draw.ellipse([fx - 7, fy - 7, fx + 7, fy + 7], fill=(255, 255, 255, 250), outline=(255, 255, 255, 255), width=1)
 
     # 6. Bottom GameControls
     ctrl_y = 1350
@@ -591,7 +645,7 @@ def render_frame(f_idx):
         draw.text(((WIDTH - (bb2[2] - bb2[0])) // 2, sub_y + 40), cap_line2, font=FONT_SUBTITLE_HIGHLIGHT, fill=(0, 230, 118, 255))
 
     # 9. Authentic WinDialog (from Screenshot 2) — drops in at t=22.4s
-    if t_sec >= 22.4:
+    if 22.4 <= t_sec < 27.5:
         pop_prog = min(1.0, (t_sec - 22.4) / 0.5)
         scale = 0.5 + 0.5 * math.sin(pop_prog * math.pi / 2)
 
@@ -686,6 +740,98 @@ def render_frame(f_idx):
             bb_cta = FONT_STATUS.getbbox(cta_txt)
             draw.text(((WIDTH - (bb_cta[2] - bb_cta[0])) // 2, dy0 + 640), cta_txt, font=FONT_STATUS, fill=(56, 189, 248, 255))
 
+    # 10. Hero App Download Showcase (t >= 26.8s)
+    if t_sec >= 26.8:
+        fade_in = min(1.0, (t_sec - 26.8) / 0.45)
+        hero_canvas = Image.new("RGBA", (WIDTH, HEIGHT), (3, 7, 18, int(252 * fade_in)))
+        hero_canvas = Image.alpha_composite(hero_canvas, ICON_AURA_LAYER)
+        hdraw = ImageDraw.Draw(hero_canvas)
+
+        # Floating radiant particles
+        for p_i in range(18):
+            px = int((p_i * 61 + (t_sec * 25)) % WIDTH)
+            py = int(HEIGHT - ((t_sec * 35 + p_i * 95) % HEIGHT))
+            p_sz = 3 + (p_i % 3) * 2
+            p_alpha = int((85 + 35 * math.sin(t_sec * 3 + p_i)) * fade_in)
+            hdraw.ellipse([px - p_sz, py - p_sz, px + p_sz, py + p_sz], fill=(0, 229, 255, p_alpha))
+
+        # Top Badge
+        top_badge_y = 350
+        top_tag = "OFFICIAL ANDROID RELEASE"
+        bb_tag = FONT_HERO_TAG.getbbox(top_tag)
+        tw = bb_tag[2] - bb_tag[0]
+        hdraw.rounded_rectangle([(WIDTH - tw) // 2 - 24, top_badge_y - 10, (WIDTH + tw) // 2 + 24, top_badge_y + 36], radius=16, fill=(15, 23, 42, int(220 * fade_in)), outline=(0, 229, 255, int(200 * fade_in)), width=2)
+        hdraw.text(((WIDTH - tw) // 2, top_badge_y), top_tag, font=FONT_HERO_TAG, fill=(0, 229, 255, int(255 * fade_in)))
+
+        # App Icon at (WIDTH//2, 540)
+        icon_cx, icon_cy = WIDTH // 2, 540
+        if APP_ICON_220 is not None:
+            hero_canvas.paste(APP_ICON_220, (icon_cx - 110, icon_cy - 110), APP_ICON_220)
+        hdraw.rounded_rectangle([icon_cx - 110, icon_cy - 110, icon_cx + 110, icon_cy + 110], radius=50, outline=(0, 229, 255, int(240 * fade_in)), width=3)
+
+        # App Title
+        title_y = 690
+        app_title = "SHIFT PUZZLE"
+        bb_title = FONT_HERO_TITLE.getbbox(app_title)
+        hdraw.text(((WIDTH - (bb_title[2] - bb_title[0])) // 2, title_y), app_title, font=FONT_HERO_TITLE, fill=(255, 255, 255, int(255 * fade_in)))
+
+        # Subtitle
+        sub_y = 765
+        sub_text = "Mind-Bending Toroidal Logic"
+        bb_sub = FONT_HERO_SUB.getbbox(sub_text)
+        hdraw.text(((WIDTH - (bb_sub[2] - bb_sub[0])) // 2, sub_y), sub_text, font=FONT_HERO_SUB, fill=(148, 163, 184, int(255 * fade_in)))
+
+        # 3 Feature Pills
+        features = [
+            ("150 HANDCRAFTED LEVELS", (56, 189, 248)),
+            ("100% FREE & ZERO ADS", (0, 230, 118)),
+            ("OFFLINE PLAY (NO WI-FI)", (192, 132, 252))
+        ]
+        feat_start_y = 840
+        pill_h = 66
+        for f_idx, (f_txt, f_color) in enumerate(features):
+            fy = feat_start_y + f_idx * (pill_h + 16)
+            bb_f = FONT_HERO_PILL.getbbox(f_txt)
+            fw = bb_f[2] - bb_f[0] + 60
+            fx0 = (WIDTH - fw) // 2
+            fx1 = fx0 + fw
+            hdraw.rounded_rectangle([fx0, fy, fx1, fy + pill_h], radius=20, fill=(15, 23, 42, int(230 * fade_in)), outline=(*f_color, int(180 * fade_in)), width=2)
+            hdraw.text(((WIDTH - (bb_f[2] - bb_f[0])) // 2, fy + 16), f_txt, font=FONT_HERO_PILL, fill=(*f_color, int(255 * fade_in)))
+
+        # Hero Download Button (CTA)
+        btn_w = 760
+        btn_h = 110
+        btn_x0 = (WIDTH - btn_w) // 2
+        btn_y0 = 1150
+        pulse_cta = 0.5 + 0.5 * math.sin(t_sec * 6.0)
+        for gr in range(24, 0, -6):
+            hdraw.rounded_rectangle([btn_x0 - gr, btn_y0 - gr, btn_x0 + btn_w + gr, btn_y0 + btn_h + gr], radius=32, fill=(0, 229, 255, int(15 * (1.0 - gr / 24) * pulse_cta * fade_in)))
+
+        hdraw.rounded_rectangle([btn_x0, btn_y0, btn_x0 + btn_w, btn_y0 + btn_h], radius=28, fill=(0, 145, 234, int(255 * fade_in)), outline=(0, 229, 255, int(240 * fade_in)), width=3)
+
+        cta_main = "DOWNLOAD FREE ON ANDROID"
+        bb_cm = FONT_HERO_BTN.getbbox(cta_main)
+        hdraw.text(((WIDTH - (bb_cm[2] - bb_cm[0])) // 2, btn_y0 + 20), cta_main, font=FONT_HERO_BTN, fill=(255, 255, 255, int(255 * fade_in)))
+
+        cta_sub = "shiftpuzzle.app • Standalone APK"
+        bb_cs = FONT_HERO_BTN_SUB.getbbox(cta_sub)
+        hdraw.text(((WIDTH - (bb_cs[2] - bb_cs[0])) // 2, btn_y0 + 64), cta_sub, font=FONT_HERO_BTN_SUB, fill=(224, 247, 250, int(240 * fade_in)))
+
+        # Bouncing Vector Arrow & Link Indicator
+        bounce_y = int(8 * math.sin(t_sec * 8.0))
+        arrow_y = 1320 + bounce_y
+        hdraw.polygon([(WIDTH // 2 - 16, arrow_y), (WIDTH // 2 + 16, arrow_y), (WIDTH // 2, arrow_y + 18)], fill=(56, 189, 248, int(255 * fade_in)))
+
+        link_txt = "TAP LINK IN BIO & DESCRIPTION"
+        bb_lt = FONT_HERO_CTA.getbbox(link_txt)
+        hdraw.text(((WIDTH - (bb_lt[2] - bb_lt[0])) // 2, arrow_y + 30), link_txt, font=FONT_HERO_CTA, fill=(56, 189, 248, int(255 * fade_in)))
+
+        domain_txt = "Available Free at: shiftpuzzle.app"
+        bb_dom = FONT_HERO_SUB.getbbox(domain_txt)
+        hdraw.text(((WIDTH - (bb_dom[2] - bb_dom[0])) // 2, arrow_y + 76), domain_txt, font=FONT_HERO_SUB, fill=(148, 163, 184, int(255 * fade_in)))
+
+        img = Image.alpha_composite(img, hero_canvas)
+
     return img
 
 def main():
@@ -705,7 +851,7 @@ def main():
         codec="libx264",
         pix_fmt_in="rgba",
         quality=8,
-        macro_block_size=16
+        macro_block_size=8
     )
     writer.send(None)
 
